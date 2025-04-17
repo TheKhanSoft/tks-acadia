@@ -132,7 +132,15 @@ If you discover a security vulnerability, please report it by emailing [TheKhanS
 
 ## 📄 License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
+This software is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License.
+
+[![CC BY-NC 4.0][cc-by-nc-shield]][cc-by-nc]
+
+[cc-by-nc]: https://creativecommons.org/licenses/by-nc/4.0/
+[cc-by-nc-shield]: https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg
+
+
+See the [LICENSE](LICENSE.md) file for more detail
 
 ---
 
@@ -141,7 +149,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 For any questions or inquiries, feel free to reach out:
 
 - GitHub: [TheKhanSoft](https://github.com/TheKhanSoft)
-- Email: [thekhansoft@gmail.com](mailto:thekhansoft@gmail.com)
+- Email: [thekhansoft (at) gmail dot com](mailto:thekhansoft@gmail.com)
 
 ---
 
