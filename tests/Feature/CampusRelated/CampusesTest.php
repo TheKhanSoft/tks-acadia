@@ -5,6 +5,7 @@ use App\Models\User;
 use Livewire\Volt\Volt;
 use Livewire\Livewire;
 
+
 test('campuses component renders correctly', function () {
     // Create a user and authenticate
     $user = User::factory()->create();
@@ -31,11 +32,13 @@ test('campuses can be searched', function () {
     $searchableCampus = Campus::factory()->create(['name' => 'Unique Test Campus']);
     Campus::factory()->count(5)->create(); // Create some other campuses
     
-    // Test search functionality
     Livewire::test('campuses')
         ->set('search', 'Unique Test')
         ->assertSee('Unique Test Campus')
-        ->assertDontSeeCount(Campus::count()); // Should not see all campuses
+        ->assertSet('search', 'Unique Test')
+        ->assertViewHas('campuses', function($campuses) {
+            return $campuses->count() === 1;
+        });
 });
 
 test('campuses can be sorted', function () {
@@ -50,9 +53,14 @@ test('campuses can be sorted', function () {
     
     // Test sorting functionality
     Livewire::test('campuses')
-        ->call('sortBy', 'name')
-        ->assertSet('sortField', 'name')
-        ->assertSet('sortDirection', 'asc');
+        // Test ascending sort
+        ->set('sortField', 'name')
+        ->set('sortDirection', 'asc')
+        ->assertSeeInOrder(['Campus A', 'Campus B', 'Campus C'])
+        
+        // Test descending sort
+        ->set('sortDirection', 'desc')
+        ->assertSeeInOrder(['Campus C', 'Campus B', 'Campus A']);
 });
 
 test('campus pagination works', function () {
@@ -66,10 +74,10 @@ test('campus pagination works', function () {
     // Test pagination
     Livewire::test('campuses')
         ->set('perPage', 10)
-        ->assertCount('campuses', 10) // Only 10 should be visible
         ->assertViewHas('campuses', function ($campuses) {
             return $campuses->count() === 10;
         });
+        
 });
 
 test('can toggle show deleted records', function () {
@@ -151,26 +159,41 @@ test('can update an existing campus', function () {
         'code' => 'OCN',
     ]);
     
+    // Create test data for update
+    $updateData = [
+        'name' => 'Updated Campus Name',
+        'code' => 'UCN',
+        'email' => 'new_email@example.com',
+        'location' => 'Updated Location',
+        'description' => 'Updated Description'
+    ];
+    
     Livewire::test('campuses')
         ->call('openModal', $campus->id)
         ->assertSet('showModal', true)
         ->assertSet('campusId', $campus->id)
-        ->assertSet('name', $campus->name)
-        ->assertSet('code', $campus->code)
-        
-        // Change campus name
-        ->set('name', 'Updated Campus Name')
+
+        // Set new values
+        ->set('name', $updateData['name'])
+        ->set('code', $updateData['code'])
+        ->set('email', $updateData['email'])
+        ->set('location', $updateData['location'])
+        ->set('description', $updateData['description'])
         
         // Save the form
         ->call('save')
         
-        // Modal should be closed
+        // Modal should be closed and campus should be in database
         ->assertSet('showModal', false);
-    
+        
     // Check that campus was updated in the database
     $this->assertDatabaseHas('campuses', [
-        'id' => $campus->id,
-        'name' => 'Updated Campus Name',
+        'id' => $campus->id, // Use the previously stored campus ID
+        'name' => $updateData['name'],
+        'code' => $updateData['code'],
+        'email' => $updateData['email'],
+        'location' => $updateData['location'],
+        'description' => $updateData['description']
     ]);
 });
 

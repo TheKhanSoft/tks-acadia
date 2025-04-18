@@ -1,9 +1,13 @@
 <?php
 
-use App\Models\Campus;
-use App\Models\Office;
 use App\Http\Requests\CampusRequest;
+use App\Models\Campus;
+use App\Models\User;
+use Livewire\Volt\Volt;
+use Livewire\Livewire;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
 
 uses(RefreshDatabase::class);
 
@@ -26,11 +30,9 @@ test('campus casts attributes correctly', function () {
 });
 
 test('campus uses soft deletes', function () {
-    // Create a campus
-    $campus = Campus::factory()->create([
-        'name' => 'Test Campus',
-        'code' => 'TEST'
-    ]);
+
+    $campuses = Campus::factory()->count(5)->create(); // Create some other campuses
+    $campus = Campus::factory()->create(['name' => 'Unique Test Campus', 'code' => 'UT123']);
     
     // Delete the campus
     $campus->delete();

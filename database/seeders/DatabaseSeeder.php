@@ -19,5 +19,37 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        $this->call([
+            // UserSeeder::class,
+            // RoleSeeder::class,
+            // PermissionsSeeder::class,
+            
+            // // Department and subjects
+            // DepartmentSeeder::class,
+            // SubjectSeeder::class,
+            // DepartmentSubjectSeeder::class,
+            
+            // // Faculty members and subject assignments
+            // FacultyMemberSeeder::class,
+            // FacultySubjectSeeder::class,
+            
+            // // Question types and questions
+            // QuestionTypeSeeder::class,
+            // QuestionSeeder::class,
+            // QuestionOptionSeeder::class,
+            
+            // // Papers and categories
+            // PaperCategorySeeder::class,
+            // PaperSeeder::class,
+            // PaperSubjectSeeder::class,
+            // PaperQuestionSeeder::class,
+
+            // // Candidate and Paper
+            // CandidateSeeder::class,
+            // TestAttemptSeeder::class,
+            // CandidatePaperSeeder::class,
+    
+        ]);
     }
 }

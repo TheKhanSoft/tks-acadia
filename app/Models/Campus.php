@@ -4,10 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\Pivot;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Campus extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasFactory;
     
     protected $fillable = [
         'name', 'location', 'code', 'description', 'address', 
@@ -17,6 +22,7 @@ class Campus extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'founded_year' => 'integer',
+        'deleted_at' => 'datetime',
     ];
     
     public function offices()
@@ -41,31 +47,8 @@ class Campus extends Model
             ->withPivot('building_name', 'room_number', 'is_primary_location', 'is_active')
             ->whereHas('officeType', function($query) {
                 $query->where('name', 'Department');
-            });
-    }
-    
-    public function programs()
-    {
-        return $this->hasManyThrough(
-            Program::class,
-            OfficeProgram::class,
-            'office_id',
-            'id',
-            'id',
-            'program_id'
-        )->distinct();
-    }
-    
-    public function employees()
-    {
-        return $this->hasManyThrough(
-            Employee::class,
-            OfficeEmployee::class,
-            'office_id',
-            'id',
-            'id',
-            'employee_id'
-        )->distinct();
+            })
+            ->withTimestamps();
     }
     
     public function scopeActive($query)

@@ -102,6 +102,7 @@ new class extends Component
     // Modal management
     public function openModal($campusId = null)
     {
+      
         $this->resetValidation();
         $this->resetExcept(['search', 'sortField', 'sortDirection', 'perPage', 'showDeletedRecords', 'selectedCampuses']);
         
@@ -153,6 +154,7 @@ new class extends Component
         // Perform validation using the rules from CampusRequest
         $validatedData = Validator::make(
             [
+                'campusId' => $this->campusId,
                 'name' => $this->name,
                 'code' => $this->code,
                 'location' => $this->location,
@@ -171,7 +173,7 @@ new class extends Component
         
         // Set code to uppercase as in prepareForValidation
         $validatedData['code'] = strtoupper($validatedData['code']);
-        
+
         if ($this->campusId) {
             // Update existing campus
             $campus = Campus::findOrFail($this->campusId);

@@ -1,12 +1,24 @@
 # TKS Acadia License 
 
-### Creative Commons Attribution-NonCommercial (CC BY-NC) License
+### Creative Commons Attribution-NonCommercial (CC BY-NC 4.0) License 
+[![CC BY-NC 4.0][cc-by-nc-shield]][cc-by-nc]
+
+<div align='center'>
+
+[![CC BY-NC 4.0][cc-by-nc-image]][cc-by-nc]
+
+[cc-by-nc]: https://creativecommons.org/licenses/by-nc/4.0/
+[cc-by-nc-shield]: https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg
+[cc-by-nc-image]: https://licensebuttons.net/l/by-nc/4.0/88x31.png
+
+</div>
 
 
-Copyright (c) 2025 TheKhanSoft
 
 ---
-
+> ***Copyright (c) 2025 TheKhanSoft***
+---
+ 
 ## Permissions
 
 1. **Personal and Educational Use**: You are granted permission to use, copy, and modify this software for personal and educational purposes only.
