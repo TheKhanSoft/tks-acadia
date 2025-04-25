@@ -10,6 +10,11 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    ->withRouting(function (\Illuminate\Routing\Router $router) {
+        // Load Volt routes with web middleware
+        Route::middleware('web')
+             ->group(base_path('routes/volt.php')); 
+    })
     ->withMiddleware(function (Middleware $middleware) {
         //
     })

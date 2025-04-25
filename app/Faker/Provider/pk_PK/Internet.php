@@ -80,11 +80,11 @@ class Internet extends BaseInternetProvider
         return str_replace(' ', '', $username);
     }
 
-    /**
+      /**
      * @var array Pakistani Email Formats
      * Add more formats if needed.
      */
-    public function customEmail()
+    public function companyEmail()
     {
         $username = str_replace(' ', '', static::randomElement(static::$userNameFormats));
         return strtolower(static::bothify($this->generator->parse($username)) . '@example.' . static::randomElement(static::$tld));

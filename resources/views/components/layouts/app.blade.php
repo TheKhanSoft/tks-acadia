@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ isset($title) ? $title.' - '.config('app.name') : config('app.name') }}</title>
-
+    @livewireStyles
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
 </head>
@@ -61,9 +61,8 @@
                     <x-menu-separator />
                 @endif
 
-                <x-menu-item title="Users" icon="o-sparkles" link="" route="users.index">
-                    <x-badge label="new" class="bg-warning" />
-                </x-menu-item>
+                <x-menu-item title="Users" icon="o-users" link="" route="users.index" /> {{-- Changed icon --}}
+                <x-menu-item title="Office Types" icon="o-tag" route="office-types.index" /> {{-- Added Office Types link --}}
                 
                 <x-menu-sub title="Settings" icon="o-cog-6-tooth">
                     <x-menu-item title="Wifi" icon="o-wifi" link="####" />
@@ -84,10 +83,13 @@
             {{ $slot }}
         </x-slot:content>
     </x-main>
+    @livewireScripts
+    @maryScripts
 
     {{--  TOAST area --}}
     <x-toast />
     @stack('scripts')
-   
+    
+    
 </body>
 </html>

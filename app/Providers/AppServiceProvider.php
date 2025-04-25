@@ -10,6 +10,7 @@ use App\Faker\Provider\pk_PK\Address;
 use App\Faker\Provider\pk_PK\PhoneNumber;
 use App\Faker\Provider\pk_PK\Company;
 use App\Faker\Provider\pk_PK\Internet; 
+use Illuminate\Database\Eloquent\Model;
 
 use Illuminate\Support\ServiceProvider;
 
@@ -45,6 +46,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Model::automaticallyEagerLoadRelationships();
     }
 }

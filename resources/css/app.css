@@ -9,6 +9,9 @@
     prefix: ; */
     logs: true;
 }
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 @custom-variant dark (&:where(.dark, .dark *));
 
 @import 'tailwindcss';
@@ -112,6 +115,11 @@ select:focus[data-flux-control] {
 
 .mary-table-pagination button {
     @apply cursor-pointer
+}
+
+/* Ensure modals are centered */
+.modal {
+    @apply flex justify-center items-center;
 }
 
 

@@ -16,16 +16,11 @@ class CampusService
      * @param array $params
      * @return LengthAwarePaginator
      */
-    public function getPaginatedCampuses(array $params): LengthAwarePaginator
+    public function getPaginatedCampuses(array $params)
     {
+        //dd($params, filter_var($params['search'], FILTER_VALIDATE_BOOLEAN));
         $query = Campus::query();
-        
-        // Apply filters
-        $query = $this->applyFilters($query, $params);
-        
-        // Apply sorting
-        $query = $this->applySorting($query, $params);
-        
+            
         // Show or hide deleted records
         if (isset($params['with_trashed']) && filter_var($params['with_trashed'], FILTER_VALIDATE_BOOLEAN)) {
             $query->withTrashed();
@@ -34,10 +29,20 @@ class CampusService
         if (isset($params['only_trashed']) && filter_var($params['only_trashed'], FILTER_VALIDATE_BOOLEAN)) {
             $query->onlyTrashed();
         }
+
+        if (isset($params['search']) && isset($params['search_term']) && filter_var($params['search'], FILTER_VALIDATE_BOOLEAN)) {
+            $search_term = $params['search_term'];
+            $query = $this->applyFilters($query, $params);
+           
+        }
+        if (isset($params['sort_by']) ) {
+            $query = $this->applySorting($query, $params);
+        }
         
         $perPage = $params['per_page'] ?? 15;
         
-        return $query->paginate($perPage)->appends($params);
+        
+        return $query->paginate($perPage);
     }
     
     /**
@@ -50,13 +55,14 @@ class CampusService
     protected function applyFilters(Builder $query, array $params): Builder
     {
         // Filter by search term
-        if (!empty($params['search'])) {
-            $searchTerm = $params['search'];
+        if (!empty($params['search_term'])) {
+            $searchTerm = $params['search_term'];
             $query->where(function (Builder $q) use ($searchTerm) {
                 $q->where('name', 'like', "%{$searchTerm}%")
                   ->orWhere('code', 'like', "%{$searchTerm}%")
                   ->orWhere('location', 'like', "%{$searchTerm}%")
-                  ->orWhere('email', 'like', "%{$searchTerm}%");
+                  ->orWhere('email', 'like', "%{$searchTerm}%")
+                  ->orWhere('phone', 'like', "%{$searchTerm}%");
             });
         }
         
