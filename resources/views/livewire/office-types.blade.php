@@ -10,52 +10,43 @@ use Livewire\Volt\Component;
 use Livewire\WithPagination;
 use Mary\Traits\Toast;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException; // Added for potential use
+use Illuminate\Validation\ValidationException;
 
 new class extends Component
 {
-    use WithPagination, Toast; // Enable pagination and toasts
+    use WithPagination, Toast; 
 
-    // Component properties matching campuses.blade.php structure
     public $officeTypeId = null;
     public $name;
     public $code;
     public $description;
     public $is_active = true;
 
-    // UI state properties matching campuses.blade.php
     public $perPage = 10;
-    #[Url]
     public $search = '';
-    #[Url]
-    public $sortField = 'name'; // Changed from sortBy
-    #[Url]
+    public $sortField = 'name';
     public $sortDirection = 'asc';
-    #[Url]
-    public $showDeletedRecords = false; // Changed from with_trashed/only_trashed
+    public $showDeletedRecords = false; 
     public $selectedOfficeTypes = [];
     public $selectAll = false;
 
-    // Modal state matching campuses.blade.php
-    public $showModal = false; // Replaces officeTypeModal
+    public $showModal = false; 
     public $showViewModal = false;
     public $viewOfficeType = null;
     public $confirmingDeletion = false;
     public $confirmingBulkDeletion = false;
-    public $confirmingPermanentDeletion = false; // Added
-    public $confirmingBulkPermanentDeletion = false; // Added
-    public $confirmingRestore = false; // Added
-    public $confirmingBulkRestore = false; // Added
+    public $confirmingPermanentDeletion = false; 
+    public $confirmingBulkPermanentDeletion = false; 
+    public $confirmingRestore = false; 
+    public $confirmingBulkRestore = false; 
 
-    // Headers for the table (used in blade loop)
     public $headers = [
         ['key' => 'name', 'label' => 'Name'],
         ['key' => 'code', 'label' => 'Code'],
         ['key' => 'description', 'label' => 'Description'],
-        ['key' => 'is_active', 'label' => 'Status'], // Combined status
+        ['key' => 'is_active', 'label' => 'Status'], 
     ];
 
-    // Reset pagination on search or perPage change
     public function updatedSearch()
     {
         $this->resetPage();
@@ -73,13 +64,11 @@ new class extends Component
         $this->selectAll = false;
     }
 
-    // Sorting functionality matching campuses.blade.php
     public function sortBy($field)
     {
-        // Ensure the field is valid for sorting to prevent errors
-        $validSortFields = ['name', 'code', 'is_active', 'created_at', 'updated_at']; // Add other sortable fields if needed
+        $validSortFields = ['name', 'code', 'is_active', 'created_at', 'updated_at']; 
         if (!in_array($field, $validSortFields)) {
-            return; // Do nothing if the field is not valid
+            return; 
         }
 
         if ($this->sortField === $field) {
@@ -90,49 +79,40 @@ new class extends Component
         }
     }
 
-    // Handle selection of all visible items matching campuses.blade.php
     public function updatedSelectAll($value)
     {
-        // Get IDs of currently displayed items for select all
-        $items = $this->getOfficeTypes()->paginate($this->perPage);
+        $items = $this->getOfficeTypes(new OfficeTypeService);
         $itemIds = $items->pluck('id')->map(fn($id) => (string) $id)->toArray();
-
+        
         if ($value) {
-            // Add current page IDs to selection, avoiding duplicates
             $this->selectedOfficeTypes = array_unique(array_merge($this->selectedOfficeTypes, $itemIds));
         } else {
-            // Remove current page IDs from selection
             $this->selectedOfficeTypes = array_diff($this->selectedOfficeTypes, $itemIds);
         }
     }
 
-    // Update selected items when changing individual selections matching campuses.blade.php
     public function updatedSelectedOfficeTypes($value)
-    {
-        // Check if all items on the current page are selected
-        $items = $this->getOfficeTypes()->paginate($this->perPage);
+    {   
+        $items = $this->getOfficeTypes(new OfficeTypeService);
         $itemIds = $items->pluck('id')->map(fn($id) => (string) $id)->toArray();
         $this->selectAll = !empty($itemIds) && empty(array_diff($itemIds, $this->selectedOfficeTypes));
     }
 
-    // Modal management matching campuses.blade.php
-    public function openModal($officeTypeId = null)
+    public function openModal($officeTypeId = null, OfficeTypeService $officeTypeService)
     {
         $this->resetValidation();
-        // Reset only specific properties, keeping filters/sorting intact
         $this->resetExcept(['search', 'sortField', 'sortDirection', 'perPage', 'showDeletedRecords', 'selectedOfficeTypes', 'selectAll', 'headers']);
 
         $this->showModal = true;
         $this->officeTypeId = $officeTypeId;
 
         if ($officeTypeId) {
-            $officeType = OfficeType::findOrFail($officeTypeId);
+            $officeType = $officeTypeService->getOfficeType($officeTypeId, true);
             $this->name = $officeType->name;
             $this->code = $officeType->code;
             $this->description = $officeType->description;
             $this->is_active = $officeType->is_active;
         } else {
-             // Explicitly reset fields for new entry
             $this->name = '';
             $this->code = '';
             $this->description = '';
@@ -140,9 +120,9 @@ new class extends Component
         }
     }
 
-    public function openViewModal($officeTypeId)
+    public function openViewModal($officeTypeId, OfficeTypeService $officeTypeService)
     {
-        $this->viewOfficeType = OfficeType::withTrashed()->findOrFail($officeTypeId); // Include trashed for viewing
+        $this->viewOfficeType = $officeTypeService->getOfficeType($officeTypeId, true);; 
         $this->showViewModal = true;
     }
 
@@ -156,21 +136,18 @@ new class extends Component
         $this->confirmingBulkPermanentDeletion = false;
         $this->confirmingRestore = false;
         $this->confirmingBulkRestore = false;
-        $this->officeTypeId = null; // Reset ID when closing any modal
-        $this->viewOfficeType = null; // Reset view object
+        $this->officeTypeId = null; 
+        $this->viewOfficeType = null;
     }
 
-    // CRUD Operations adapted from campuses.blade.php
-    public function save(OfficeTypeService $officeTypeService) // Inject service
+    public function save(OfficeTypeService $officeTypeService) 
     {
-        // Use OfficeTypeRequest for validation rules, messages, attributes
         $request = new OfficeTypeRequest();
         $currentId = $this->officeTypeId;
         $rules = $request->rules($currentId);
         $messages = $request->messages();
         $attributes = $request->attributes();
 
-        // Data to validate from component state
         $dataToValidate = [
             'name' => $this->name,
             'code' => $this->code,
@@ -178,37 +155,31 @@ new class extends Component
             'is_active' => $this->is_active,
         ];
 
-        // Perform validation
         $validatedData = Validator::make($dataToValidate, $rules, $messages, $attributes)->validate();
 
-        // Prepare code (uppercase) - similar to CampusRequest prepareForValidation
         $validatedData['code'] = strtoupper($validatedData['code']);
 
         try {
             if ($this->officeTypeId) {
-                // Update existing office type
-                $officeType = OfficeType::findOrFail($this->officeTypeId);
+                $officeType = $officeTypeService->getOfficeType($this->officeTypeId);
                 $officeTypeService->updateOfficeType($officeType, $validatedData);
-                $this->success('Office Type updated successfully! 🏢'); // Use MaryUI toast trait
+                $this->success('Office Type updated successfully! 🏢'); 
             } else {
-                // Create new office type
                 $officeTypeService->createOfficeType($validatedData);
-                $this->success('New Office Type added successfully! ✨'); // Use MaryUI toast trait
+                $this->success('New Office Type added successfully! ✨'); 
             }
             $this->closeModal();
         } catch (\Exception $e) {
             \Log::error("Office Type Save Error: " . $e->getMessage(), ['exception' => $e]);
-            $this->error('An error occurred while saving the Office Type.'); // Use MaryUI toast trait
+            $this->error('An error occurred while saving the Office Type.'); 
         }
     }
 
-    // Toggle active status matching campuses.blade.php
     public function toggleActive($officeTypeId, OfficeTypeService $officeTypeService)
     {
         try {
-            $officeType = OfficeType::findOrFail($officeTypeId);
-            // Assuming service has a method like this, or implement logic here
-            $officeType->update(['is_active' => !$officeType->is_active]);
+            $officeType = $officeTypeService->getOfficeType($officeTypeId);
+            $officeTypeService->toggleActiveStatus($officeType);
             $statusText = $officeType->is_active ? 'activated' : 'deactivated';
             $this->success("Office Type {$statusText} successfully! 🔄");
         } catch (\Exception $e) {
@@ -216,8 +187,7 @@ new class extends Component
             $this->error('Failed to toggle status.');
         }
     }
-
-     // Handle Bulk Actions Dropdown Change
+    
     public function handleBulkAction($action)
     {
         if (!$action) return;
@@ -227,53 +197,50 @@ new class extends Component
             return;
         }
 
-        // Map action value to confirmation modal property
         $confirmationMap = [
             'confirmBulkDelete' => 'confirmingBulkDeletion',
-            'bulkToggleActive' => null, // Direct action, no confirmation needed here
+            'bulkToggleActive' => null,
             'confirmBulkRestore' => 'confirmingBulkRestore',
             'confirmBulkPermanentDelete' => 'confirmingBulkPermanentDeletion',
         ];
-
+        ;
         if ($action === 'bulkToggleActive') {
-            $this->bulkToggleActive(); // Call directly
+            $this->bulkToggleActive(new OfficeTypeService()); 
         } elseif (isset($confirmationMap[$action])) {
-            $this->{$confirmationMap[$action]} = true; // Show confirmation modal
+            $this->{$confirmationMap[$action]} = true; 
         }
 
         // Reset the dropdown selection visually (optional, depends on desired UX)
-        // $this->bulkAction = '';
+        $this->handleBulkAction = '';
     }
 
-
-    // Bulk toggle active status matching campuses.blade.php
     public function bulkToggleActive(OfficeTypeService $officeTypeService)
     {
         if (empty($this->selectedOfficeTypes)) {
-             // This check might be redundant if called via handleBulkAction, but good for direct calls
             $this->warning('Please select office types to toggle status 🤔');
             return;
         }
 
         try {
-            // Determine target state (activate if more than half are inactive, otherwise deactivate)
-            $officeTypes = OfficeType::whereIn('id', $this->selectedOfficeTypes)->get();
-            $inactiveCount = $officeTypes->where('is_active', false)->count();
-            $setActive = $inactiveCount >= $officeTypes->count() / 2;
-
-            OfficeType::whereIn('id', $this->selectedOfficeTypes)->update(['is_active' => $setActive]);
-
-            $statusText = $setActive ? 'activated' : 'deactivated';
-            $this->success(count($this->selectedOfficeTypes) . " office types {$statusText} successfully! 🔄");
+            $officeTypes = $officeTypeService->getOfficeTypes($this->selectedOfficeTypes)->get();
+            $toggledStatuses = $officeTypeService->bulkToggleActiveStatus($officeTypes);
+            $this->success(
+                "Bulk toggle operation for Office Type successful🔄", 
+                "<br />Total Toggles: <b>$toggledStatuses[totalToggledCount]</b><br />
+                Activated: <b>$toggledStatuses[activatedCount]</b><br />
+                Deactivated: <b>$toggledStatuses[deactivatedCount]</b><br />
+                " 
+            );
             $this->selectedOfficeTypes = [];
             $this->selectAll = false;
+            $this->handleBulkAction = '';
+            
         } catch (\Exception $e) {
             \Log::error("Bulk Toggle Active Error: " . $e->getMessage(), ['exception' => $e]);
             $this->error('Failed to toggle status for selected office types.');
         }
     }
 
-    // Soft delete operations matching campuses.blade.php
     public function confirmDelete($officeTypeId)
     {
         $this->officeTypeId = $officeTypeId;
@@ -283,28 +250,23 @@ new class extends Component
     public function delete(OfficeTypeService $officeTypeService)
     {
         try {
-            $officeType = OfficeType::findOrFail($this->officeTypeId);
-            $officeTypeService->deleteOfficeType($officeType); // Use service if available
-            // Or direct delete: $officeType->delete();
+            $successful = $officeTypeService->deleteOfficeTypeById($this->officeTypeId); 
             $this->confirmingDeletion = false;
-            $this->success('Office Type deleted successfully! 🗑️');
+            $successful ? $this->warning('Office Type deleted successfully! 🗑️') : $this->error('Failed to delete Office Type.');
             $this->officeTypeId = null;
         } catch (\Exception $e) {
             \Log::error("Office Type Delete Error: " . $e->getMessage(), ['exception' => $e]);
-            $this->confirmingDeletion = false; // Close modal even on error
+            $this->confirmingDeletion = false;
             $this->error('Failed to delete Office Type.');
         }
     }
 
-    // confirmBulkDelete is triggered by handleBulkAction setting confirmingBulkDeletion = true
-
     public function bulkDelete(OfficeTypeService $officeTypeService)
     {
         try {
-            // Use service or direct delete
-            OfficeType::whereIn('id', $this->selectedOfficeTypes)->delete();
+            $successful = $officeTypeService->bulkDeleteOfficeTypeByIds($this->selectedOfficeTypes);
             $this->confirmingBulkDeletion = false;
-            $this->success(count($this->selectedOfficeTypes) . ' office types deleted successfully! 🗑️');
+            $successful ? $this->warning(count($this->selectedOfficeTypes) . ' office types deleted successfully! 🗑️') : $this->error('Failed to delete selected office types.');
             $this->selectedOfficeTypes = [];
             $this->selectAll = false;
         } catch (\Exception $e) {
@@ -324,10 +286,9 @@ new class extends Component
     public function restore(OfficeTypeService $officeTypeService)
     {
         try {
-            // Use service or direct restore
-            OfficeType::withTrashed()->where('id', $this->officeTypeId)->restore();
+            $successful = $officeTypeService->restoreOfficeType($this->officeTypeId);
             $this->confirmingRestore = false;
-            $this->success('Office Type restored successfully! ♻️');
+            $successful ? $this->success('Office Type restored successfully! ♻️') : $this->error('Failed to restore Office Type.');
             $this->officeTypeId = null;
         } catch (\Exception $e) {
             \Log::error("Office Type Restore Error: " . $e->getMessage(), ['exception' => $e]);
@@ -336,21 +297,18 @@ new class extends Component
         }
     }
 
-    // confirmBulkRestore is triggered by handleBulkAction setting confirmingBulkRestore = true
-
     public function bulkRestore(OfficeTypeService $officeTypeService)
     {
         try {
-            // Use service or direct restore
-            OfficeType::withTrashed()->whereIn('id', $this->selectedOfficeTypes)->restore();
+            $successful = $officeTypeService->bulkRestoreOfficeTypes($this->selectedOfficeTypes);
             $this->confirmingBulkRestore = false;
-            $this->success(count($this->selectedOfficeTypes) . ' office types restored successfully! ♻️');
+            $successful ? $this->success(count($this->selectedOfficeTypes) . ' office types restored successfully! ♻️') : $this->error('Failed to restore selected office types.');
             $this->selectedOfficeTypes = [];
             $this->selectAll = false;
         } catch (\Exception $e) {
             \Log::error("Bulk Restore Error: " . $e->getMessage(), ['exception' => $e]);
             $this->confirmingBulkRestore = false; // Close modal even on error
-            $this->error('Failed to restore selected office types.');
+            $this->error('Failed to restore selected office types.', "Bulk Restore Error: " . $e->getMessage(), ['exception' => $e]);
         }
     }
 
@@ -364,10 +322,9 @@ new class extends Component
     public function permanentDelete(OfficeTypeService $officeTypeService)
     {
         try {
-            // Use service or direct force delete
-             OfficeType::withTrashed()->where('id', $this->officeTypeId)->forceDelete();
+            $successful = $officeTypeService->permanentlyDelete($this->officeTypeId);
             $this->confirmingPermanentDeletion = false;
-            $this->success('Office Type permanently deleted! 💥');
+            $successful ? $this->warning('Office Type permanently deleted! 💥') : $this->error('Failed to permanently delete Office Type.');
             $this->officeTypeId = null;
         } catch (\Exception $e) {
             \Log::error("Permanent Delete Error: " . $e->getMessage(), ['exception' => $e]);
@@ -376,15 +333,13 @@ new class extends Component
         }
     }
 
-    // confirmBulkPermanentDelete is triggered by handleBulkAction setting confirmingBulkPermanentDeletion = true
-
     public function bulkPermanentDelete(OfficeTypeService $officeTypeService)
     {
         try {
-            // Use service or direct force delete
-            OfficeType::withTrashed()->whereIn('id', $this->selectedOfficeTypes)->forceDelete();
+            $successful = $officeTypeService->bulkPermanentDelete($this->selectedOfficeTypes);
             $this->confirmingBulkPermanentDeletion = false;
-            $this->success(count($this->selectedOfficeTypes) . ' office types permanently deleted! 💥');
+            $successful ? $this->warning(count($this->selectedOfficeTypes) . ' office types permanently deleted! 💥') : $this->error('Failed to permanently delete selected office types');
+           
             $this->selectedOfficeTypes = [];
             $this->selectAll = false;
         } catch (\Exception $e) {
@@ -395,50 +350,32 @@ new class extends Component
     }
 
     // Fetch office types with applied filters matching campuses.blade.php structure
-    private function getOfficeTypes()
+    private function getOfficeTypes(OfficeTypeService $officeTypeService)
     {
-        $query = OfficeType::query();
+        $filteringSorting = [
+            'with_trashed' => $this->showDeletedRecords,
+            'only_trashed' => false,
+            'search' => $this->search ? true : false,
+            'search_term' => $this->search ,
+            'sort_by' => $this->sortField,
+            'sort_dir' => $this->sortDirection,
+            'per_page' => $this->perPage
+        ];
 
-        // Handle soft deleted records
-        if ($this->showDeletedRecords) {
-            $query->withTrashed();
-        }
-
-        // Apply search filter across multiple fields
-        if ($this->search) {
-            $query->where(function ($query) {
-                $query->where('name', 'like', '%' . $this->search . '%')
-                      ->orWhere('code', 'like', '%' . $this->search . '%')
-                      ->orWhere('description', 'like', '%' . $this->search . '%');
-            });
-        }
-
-        // Apply sorting
-        // Ensure the sort field is valid before applying
-        $validSortFields = ['name', 'code', 'is_active', 'created_at', 'updated_at']; // Match fields used in sortBy
-        if (in_array($this->sortField, $validSortFields)) {
-             $query->orderBy($this->sortField, $this->sortDirection);
-        } else {
-             $query->orderBy('name', 'asc'); // Default sort if invalid field somehow selected
-        }
-
-
-        return $query;
+        return $officeTypeService->getPaginatedOfficeTypes($filteringSorting);
     }
 
-    // Render method adapted from campuses.blade.php
     public function render(): mixed
     {
-        $officeTypesQuery = $this->getOfficeTypes();
-        $officeTypes = $officeTypesQuery->paginate($this->perPage);
+        $officeTypes = $this->getOfficeTypes(new OfficeTypeService);
+        // $officeTypes = $officeTypesQuery->paginate($this->perPage);
 
-        // Update selectAll status based on current page items
         $currentPageIds = $officeTypes->pluck('id')->map(fn($id) => (string) $id)->toArray();
         $this->selectAll = !empty($currentPageIds) && empty(array_diff($currentPageIds, $this->selectedOfficeTypes));
 
         return view('livewire.office-types', [
             'officeTypes' => $officeTypes,
-            'headers' => $this->headers // Pass headers to the view
+            'headers' => $this->headers 
         ]);
     }
 }
@@ -446,15 +383,14 @@ new class extends Component
 ?>
 
 <div>
-    
+
     <x-header 
         class="px-4 pt-4 !mb-2"
         title-class="text-2xl font-bold text-gray-800 dark:text-white"
         title="Office Type Management" 
         icon="o-bolt" 
         icon-classes="bg-warning rounded-full p-1 w-6 h-6" 
-        subtitle="Total Office Types: {{ $officeTypes->total() }} {{ $showDeletedRecords ? 'including deleted' : '' }}" 
-        >
+        subtitle="Total Office Types: {{ $officeTypes->total() }} {{ $showDeletedRecords ? 'including deleted' : '' }}" >
 
         <x-slot:middle class="!justify-end">
         <x-input 
@@ -491,28 +427,28 @@ new class extends Component
             </div>
         </div>
 
-        <!-- Bulk Actions -->
-        <div class="flex items-center space-x-2">
-             {{-- Use MaryUI select for bulk actions --}}
-            <x-select
-                placeholder="Bulk actions"
-                :options="[
-                    ['id' => 'confirmBulkDelete', 'name' => 'Delete Selected'],
-                    ['id' => 'bulkToggleActive', 'name' => 'Toggle Active Status'],
-                    ...( $showDeletedRecords ? [
-                        ['id' => 'confirmBulkRestore', 'name' => 'Restore Selected'],
-                        ['id' => 'confirmBulkPermanentDelete', 'name' => 'Permanently Delete']
-                    ] : [])
-                ]"
-                class="select select-bordered select-sm py-0"
-                wire:change="handleBulkAction($event.target.value)" 
-                wire:model="bulkActionTrigger"
-            />
+        @if(count($selectedOfficeTypes))
+            <div class="flex items-center space-x-2">
+                <x-select
+                    placeholder="Perform a bulk action"
+                    icon="o-bolt" 
+                    :options="[
+                        ['id' => 'confirmBulkDelete', 'name' => 'Delete Selected'],
+                        ['id' => 'bulkToggleActive', 'name' => 'Toggle Active Status'],
+                        ...( $showDeletedRecords ? [
+                            ['id' => 'confirmBulkRestore', 'name' => 'Restore Selected'],
+                            ['id' => 'confirmBulkPermanentDelete', 'name' => 'Permanently Delete']
+                        ] : [])
+                    ]"
+                    class="select select-bordered select-sm py-0"
+                    wire:change="handleBulkAction($event.target.value)" 
+                />
 
-            <span class="text-sm text-gray-500 dark:text-gray-400">
-                {{ count($selectedOfficeTypes) }} selected
-            </span>
-        </div>
+                <span class="text-sm text-gray-500 dark:text-gray-400">
+                    {{ count($selectedOfficeTypes) }} selected
+                </span>
+            </div>
+        @endif
     </div>
 
     <!-- Table Section -->
@@ -708,16 +644,16 @@ new class extends Component
                         {{ $viewOfficeType->name }}
                     </h3>
                     <div class="flex flex-wrap gap-2 items-center">
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                        <span class="inline-flex items-center px-3 py-1 shadow rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                             <x-icon name="o-tag" class="h-3 w-3 mr-1" />
                             {{ $viewOfficeType->code }}
                         </span>
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold {{ $viewOfficeType->is_active ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' }}">
+                        <span class="inline-flex items-center px-3 py-1 shadow rounded-full text-xs font-semibold {{ $viewOfficeType->is_active ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' }}">
                             <x-icon name="{{ $viewOfficeType->is_active ? 'o-check-circle' : 'o-x-circle' }}" class="h-3 w-3 mr-1" />
                             {{ $viewOfficeType->is_active ? 'Active' : 'Inactive' }}
                         </span>
                         @if($viewOfficeType->deleted_at)
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                            <span class="inline-flex items-center px-3 shadow py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
                                 <x-icon name="o-archive-box-x-mark" class="h-3 w-3 mr-1" />
                                 Deleted
                             </span>
@@ -728,7 +664,7 @@ new class extends Component
                     <div class="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">
                         Description
                     </div>
-                    <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                    <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 shadow">
                         <p class="text-sm text-gray-900 dark:text-white leading-relaxed">
                             {{ $viewOfficeType->description ?: 'No description provided.' }}
                         </p>
@@ -739,10 +675,10 @@ new class extends Component
                     <div class="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-3">
                         Details
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         {{-- Created At --}}
-                        <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-                            <div class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">
+                        <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 shadow">
+                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">
                                 Created At
                             </div>
                             <p class="text-sm text-gray-900 dark:text-white">
@@ -751,8 +687,8 @@ new class extends Component
                         </div>
 
                         {{-- Last Updated At --}}
-                        <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-                            <div class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">
+                        <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 shadow">
+                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">
                                 Last Updated
                             </div>
                             <p class="text-sm text-gray-900 dark:text-white">
@@ -762,8 +698,8 @@ new class extends Component
 
                         {{-- Deleted At (Conditional) --}}
                         @if($viewOfficeType->deleted_at)
-                            <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-3 sm:col-span-2"> {{-- Full width on small screens up --}}
-                                <div class="text-xs font-medium text-red-600 dark:text-red-400 uppercase mb-1">
+                            <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-3 shadow"> 
+                                <div class="text-xs text-red-600 dark:text-red-400 uppercase">
                                     Deleted At
                                 </div>
                                 <p class="text-sm text-red-800 dark:text-red-300">
@@ -940,5 +876,6 @@ new class extends Component
             <x-button label="Permanently Delete {{ count($selectedOfficeTypes) }} Types" wire:click="bulkPermanentDelete" class="btn-error" wire:loading.attr="disabled" wire:target="bulkPermanentDelete" />
         </x-slot:actions>
     </x-modal>
+    
 </div>
 

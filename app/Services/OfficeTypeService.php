@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\OfficeType;
-// Remove OfficeTypeRequest import as it's no longer directly type-hinted in create/update
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -16,7 +15,7 @@ class OfficeTypeService
      * @param array $params Filtering and pagination parameters.
      * @return LengthAwarePaginator
      */
-    public function getPaginatedOfficeTypes(array $params): LengthAwarePaginator
+    public function getPaginatedOfficeTypes(array $params)
     {
         $query = OfficeType::query();
             
@@ -53,15 +52,15 @@ class OfficeTypeService
      * @param array $params Filtering parameters.
      * @return Builder
      */
-    protected function applyFilters(Builder $query, array $params): Builder
+    protected function applyFilters(Builder $query, array $params)
     {
         // Filter by search term across name and code
         if (!empty($params['search_term'])) {
             $searchTerm = $params['search_term'];
             $query->where(function (Builder $q) use ($searchTerm) {
                 $q->where('name', 'like', "%{$searchTerm}%")
-                  ->orWhere('code', 'like', "%{$searchTerm}%");
-                  // Add description search if needed: ->orWhere('description', 'like', "%{$searchTerm}%");
+                  ->orWhere('code', 'like', "%{$searchTerm}%")
+                  ->orWhere('description', 'like', "%{$searchTerm}%");
             });
         }
         
@@ -81,7 +80,7 @@ class OfficeTypeService
      * @param array $params Sorting parameters.
      * @return Builder
      */
-    protected function applySorting(Builder $query, array $params): Builder
+    protected function applySorting(Builder $query, array $params)
     {
         $sortField = $params['sort_by'] ?? 'name'; // Default sort field
         $sortDirection = isset($params['sort_dir']) && strtolower($params['sort_dir']) === 'desc' ? 'desc' : 'asc'; // Default sort direction
@@ -104,9 +103,9 @@ class OfficeTypeService
      *
      * @param int $id The ID of the office type.
      * @param bool $withTrashed Include soft-deleted records.
-     * @return OfficeType|null
+     * @return OfficeType|Builder|null
      */
-    public function getOfficeType(int $id, bool $withTrashed = false): ?OfficeType
+    public function getOfficeType(int $id, bool $withTrashed = false)
     {
         $query = OfficeType::query();
         
@@ -116,6 +115,26 @@ class OfficeTypeService
         
         return $query->find($id);
     }
+
+    /**
+     * Get a single office type by its ID.
+     *
+     * @param int $id The ID of the office type.
+     * @param bool $withTrashed Include soft-deleted records.
+     * @return Collection<int, OfficeType>|Builder|null
+     */
+    public function getOfficeTypes(int|array $ids, bool $withTrashed = false)
+    {
+        $query = OfficeType::query();
+        
+        if ($withTrashed) {
+            $query->withTrashed();
+        }
+
+        return $query->whereIn('id', $ids);
+    }
+
+    //OfficeType::whereIn('id', $this->selectedOfficeTypes)->get()
     
     /**
      * Create a new office type using validated data.
@@ -123,9 +142,8 @@ class OfficeTypeService
      * @param array $validatedData Validated data for creating the office type.
      * @return OfficeType
      */
-    public function createOfficeType(array $validatedData): OfficeType
+    public function createOfficeType(array $validatedData)
     {
-        // Ensure 'code' is uppercase if that's a requirement
         if (isset($validatedData['code'])) {
             $validatedData['code'] = strtoupper($validatedData['code']);
         }
@@ -139,7 +157,7 @@ class OfficeTypeService
      * @param array $validatedData Validated data for updating the office type.
      * @return bool True on success, false otherwise.
      */
-    public function updateOfficeType(OfficeType $officeType, array $validatedData): bool
+    public function updateOfficeType(OfficeType $officeType, array $validatedData)
     {
         // Ensure 'code' is uppercase if that's a requirement
         if (isset($validatedData['code'])) {
@@ -154,10 +172,33 @@ class OfficeTypeService
      * @param OfficeType $officeType The office type model instance.
      * @return bool True on success, false otherwise.
      */
-    public function toggleActiveStatus(OfficeType $officeType): bool
+    public function toggleActiveStatus(OfficeType $officeType)
     {
+        // $officeType->toggle('is_active');
         $officeType->is_active = !$officeType->is_active;
         return $officeType->save();
+    }
+
+     
+    /**
+     * Toggle the active status of an office type.
+     *
+     * @param OfficeType $officeType The office type model instance.
+     * @return array of count, i.e. totalToggledCount, activatedCount, deactivatedCount
+     */
+    public function bulkToggleActiveStatus($officeTypes)
+    {
+        $toggleCount = [
+            'totalToggledCount' =>  0, 
+            'activatedCount' => 0,
+            'deactivatedCount' => 0, 
+        ];
+        foreach($officeTypes as $officeType){
+            $currenStatus = $officeType->is_active;
+            $toggleCount['totalToggledCount'] += $this->toggleActiveStatus($officeType);
+            $currenStatus ? $toggleCount['deactivatedCount'] += 1 : $toggleCount['activatedCount'] += 1;
+        }
+        return $toggleCount;
     }
     
     /**
@@ -166,9 +207,32 @@ class OfficeTypeService
      * @param OfficeType $officeType The office type model instance to delete.
      * @return bool True on success, false otherwise.
      */
-    public function deleteOfficeType(OfficeType $officeType): bool
+    public function deleteOfficeType(OfficeType $officeType )
     {
         return $officeType->delete(); // Uses SoftDeletes trait
+    }
+
+    /**
+     * Soft delete an office type.
+     *
+     * @param $officeTypeId The office type id to delete.
+     * @return bool True on success, false otherwise.
+     */
+    public function deleteOfficeTypeById($officeTypeId)
+    {
+        $officeType = OfficeType::findOrFail($officeTypeId);
+        return $officeType->delete(); 
+    }
+
+      /**
+     * Soft delete an office type.
+     *
+     * @param array The office type model instance to delete.
+     * @return bool True on success, false otherwise.
+     */
+    public function bulkDeleteOfficeTypeByIds($officeTypesIds)
+    {
+        return OfficeType::whereIn('id', $officeTypesIds)->delete();
     }
     
     /**
@@ -177,11 +241,24 @@ class OfficeTypeService
      * @param int $id The ID of the soft-deleted office type.
      * @return bool True on success, false otherwise.
      */
-    public function restoreOfficeType(int $id): bool
+    public function restoreOfficeType(int $id)
     {
         $officeType = OfficeType::withTrashed()->find($id);
         return $officeType ? $officeType->restore() : false;
     }
+
+    /**
+     * Restore a soft-deleted office type by its ID.
+     *
+     * @param array $officeTypeIdsToRestore The ID of the soft-deleted office type.
+     * @return bool|mixed|null
+     */
+    public function bulkRestoreOfficeTypes(array $officeTypeIdsToRestore)
+    {
+        $officeTypes = OfficeType::withTrashed()->whereIn('id', $officeTypeIdsToRestore);
+        return $officeTypes->restore();
+    }
+
     
     /**
      * Permanently delete an office type by its ID (use with caution).
@@ -189,18 +266,33 @@ class OfficeTypeService
      * @param int $id The ID of the office type to delete permanently.
      * @return bool True on success, false otherwise.
      */
-    public function permanentlyDeleteOfficeType(int $id): bool
+    public function permanentlyDelete(int $id)
     {
         $officeType = OfficeType::withTrashed()->find($id);
         return $officeType ? $officeType->forceDelete() : false;
     }
+
+    
+    /**
+     * Restore a soft-deleted office type by its ID.
+     *
+     * @param array $officeTypeIdsToPermanentDelete The ID of the soft-deleted office type.
+     * @return bool|mixed|null
+     */
+    public function bulkPermanentDelete(array $officeTypeIdsToPermanentDelete)
+    {
+        $officeTypes = OfficeType::withTrashed()->whereIn('id', $officeTypeIdsToPermanentDelete);
+        return $officeTypes->forceDelete();
+    }
+
+    
     
     /**
      * Count the number of active office types.
      *
      * @return int
      */
-    public function countActiveOfficeTypes(): int
+    public function countActiveOfficeTypes()
     {
         return OfficeType::where('is_active', true)->count();
     }
@@ -211,7 +303,7 @@ class OfficeTypeService
      * @param bool $activeOnly Include only active office types.
      * @return Collection
      */
-    public function getOfficeTypesForDropdown(bool $activeOnly = true): Collection
+    public function getOfficeTypesForDropdown(bool $activeOnly = true)
     {
         $query = OfficeType::query();
         
@@ -229,7 +321,7 @@ class OfficeTypeService
      * @param int|null $exceptId Exclude an ID from the check (useful for updates).
      * @return bool True if the code exists, false otherwise.
      */
-    public function codeExists(string $code, ?int $exceptId = null): bool
+    public function codeExists(string $code, ?int $exceptId = null)
     {
         $query = OfficeType::where('code', strtoupper($code)); // Ensure case-insensitivity if needed
         

@@ -11,7 +11,7 @@ class OfficeTypeRequest extends FormRequest
     /**
      * Determine if the user is authorized to make this request.
      */
-    public function authorize(): bool
+    public function authorize()
     {
         // Implement your authorization logic here if needed
         // For now, allowing all authenticated users
@@ -24,7 +24,7 @@ class OfficeTypeRequest extends FormRequest
      * @param int|null $officeTypeId The ID of the office type being updated, if any.
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    public function rules(?int $officeTypeId = null): array // Accept optional ID argument
+    public function rules(?int $officeTypeId = null)
     {
         // Use the passed $officeTypeId argument instead of trying to get it from the route
 
@@ -34,7 +34,6 @@ class OfficeTypeRequest extends FormRequest
                 'string',
                 'min:3', 
                 'max:255',
-                // Ensure name is unique, ignoring the current office type ID during updates
                 Rule::unique('office_types', 'name')->ignore($officeTypeId) 
             ],
             'code' => [

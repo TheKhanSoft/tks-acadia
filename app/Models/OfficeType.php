@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class OfficeType extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasFactory;
     
     protected $fillable = [
         'name', 'code', 'description', 'is_active'
