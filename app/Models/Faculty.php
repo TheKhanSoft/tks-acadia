@@ -7,14 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 
-class Office extends Model
+class Faculty extends Model
 {
     use SoftDeletes, HasFactory;
-    
+
     protected $fillable = [
-        'name', 'code', 'office_type_id', 'description', 'head_id', 'campus_id', 'faculty_id',
-        'head_appointment_date', 'office_location', 'contact_email', 
-        'contact_phone', 'established_year', 'parent_office_id', 'is_active'
+        'name', 'code', 'description', 'head_id', 'head_appointment_date',
+         'contact_phone', 'contact_email', 'established_year', 'is_active'
     ];
     
     protected $casts = [

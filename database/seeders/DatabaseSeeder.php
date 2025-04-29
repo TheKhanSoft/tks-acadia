@@ -19,9 +19,12 @@ class DatabaseSeeder extends Seeder
             // UserSeeder::class,
             // RoleSeeder::class,
             // PermissionsSeeder::class,
-            OfficeTypeSeeder::class,
             CampusSeeder::class,
-            // // Department and subjects
+            FacultySeeder::class,
+            OfficeTypeSeeder::class,
+            OfficeSeeder::class,
+            
+             // // Department and subjects
             // DepartmentSeeder::class,
             // SubjectSeeder::class,
             // DepartmentSubjectSeeder::class,

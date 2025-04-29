@@ -708,13 +708,12 @@ new class extends Component {
                                         <x-icon name="o-phone" class="h-4 w-4 mr-1 text-gray-400" />
                                         {{ $office->contact_phone }}
                                     </div>
-                                @elseif($office->contact_email)
+                                @endif
+                                @if($office->contact_email)
                                     <div class="flex items-center">
                                         <x-icon name="o-envelope" class="h-4 w-4 mr-1 text-gray-400" />
                                         {{ $office->contact_email }}
                                     </div>
-                                @else
-                                    -
                                 @endif
                             </div>
                         </td>

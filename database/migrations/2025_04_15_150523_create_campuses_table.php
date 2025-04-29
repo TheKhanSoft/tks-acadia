@@ -14,12 +14,12 @@ return new class extends Migration
         Schema::create('campuses', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('location')->nullable();
             $table->string('code')->unique();
             $table->text('description')->nullable();
-            $table->string('address')->nullable();
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
+            $table->string('location')->nullable();
+            $table->string('address')->nullable();
             $table->string('website')->nullable();
             $table->string('founded_year')->nullable();
             $table->boolean('is_active')->default(true);

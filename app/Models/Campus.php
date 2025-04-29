@@ -25,30 +25,24 @@ class Campus extends Model
         'deleted_at' => 'datetime',
     ];
     
-    public function offices()
+    public function offices(): HasMany
     {
-        return $this->belongsToMany(Office::class)
-            ->withPivot('building_name', 'room_number', 'is_primary_location', 'is_active')
-            ->withTimestamps();
+        return $this->hasMany(Office::class);
     }
     
     public function activeOffices()
     {
         return $this->belongsToMany(Office::class)
-            ->withPivot('building_name', 'room_number', 'is_primary_location', 'is_active')
-            ->wherePivot('is_active', true)
-            ->where('offices.is_active', true)
-            ->withTimestamps();
+            ->where('offices.is_active', true);
     }
     
     public function departments()
     {
         return $this->belongsToMany(Office::class)
-            ->withPivot('building_name', 'room_number', 'is_primary_location', 'is_active')
             ->whereHas('officeType', function($query) {
                 $query->where('name', 'Department');
-            })
-            ->withTimestamps();
+            }
+        );
     }
     
     public function scopeActive($query)
