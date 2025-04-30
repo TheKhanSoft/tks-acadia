@@ -10,20 +10,28 @@ class Employee extends Model
     use SoftDeletes;
     
     protected $fillable = [
-        'employee_id', 'first_name', 'last_name', 'email', 'phone',
-        'designation', 'employee_type_id', 'hire_date', 'termination_date',
-        'qualification', 'specialization', 'photo_path', 'bio', 'is_active'
+        'employee_id', 'first_name', 'last_name', 'email', 'phone', 'gender', 'nic_no',
+        'date_of_birth', 'employee_type_id', 'appointment_date', 'termination_date',
+        'postal_address', 'permanent_address',
+        'qualification', 'specialization', 'photo_path', 'bio',
+        'employment_status_id', 'is_active'
     ];
     
     protected $casts = [
         'is_active' => 'boolean',
-        'hire_date' => 'date',
+        'date_of_birth' => 'date',
+        'appointment_date' => 'date',
         'termination_date' => 'date',
     ];
     
     public function employeeType()
     {
         return $this->belongsTo(EmployeeType::class);
+    }
+
+    public function employmentStatus()
+    {
+        return $this->belongsTo(EmploymentStatus::class);
     }
     
     public function offices()

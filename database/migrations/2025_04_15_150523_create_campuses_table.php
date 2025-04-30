@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('campuses', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('short_name')->unique();
             $table->string('code')->unique();
             $table->text('description')->nullable();
             $table->string('phone')->nullable();

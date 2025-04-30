@@ -4,9 +4,11 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use App\Models\Campus;
+use App\Models\Employee;
+use App\Models\Faculty;
 use App\Models\Office;
 use App\Models\OfficeType;
-use App\Models\Employee;
 
 class OfficeRequest extends FormRequest
 {
@@ -35,7 +37,13 @@ class OfficeRequest extends FormRequest
                 'string',
                 'min:3',
                 'max:255',
-                Rule::unique('offices', 'name')->ignore($officeId)
+                Rule::unique('offices', 'name')->ignore($officeId),
+            ],
+            'short_name' => [
+                'nullable',
+                'string',
+                'max:100',
+                Rule::unique('offices', 'short_name')->ignore($officeId),
             ],
             'code' => [
                 'required',
@@ -47,7 +55,17 @@ class OfficeRequest extends FormRequest
             'office_type_id' => [
                 'required',
                 'integer',
-                Rule::exists(OfficeType::class, 'id') // Ensure the office type exists
+                Rule::exists(OfficeType::class, 'id'), // Ensure the office type exists
+            ],
+            'campus_id' => [
+                'nullable',
+                'integer',
+                Rule::exists(Campus::class, 'id'), // Ensure the campus exists
+            ],
+            'faculty_id' => [
+                'nullable',
+                'integer',
+                Rule::exists(Faculty::class, 'id'), // Ensure the faculty exists
             ],
             'description' => ['nullable', 'string', 'max:1000'],
             'head_id' => [
@@ -91,6 +109,9 @@ class OfficeRequest extends FormRequest
             'name.max' => 'The office name is too long. Please keep it under 255 characters.',
             'name.unique' => 'Oops! An office with this name already exists in the system.',
 
+            'short_name.max' => 'The short name is too long. Keep it under 100 characters.',
+            'short_name.unique' => 'This short name is already taken. Please choose another one.',
+
             'code.required' => 'Please provide a unique code for this office (e.g., "REG", "PHY").',
             'code.max' => 'The office code is too long. Keep it under 50 characters.',
             'code.alpha_dash' => 'Office codes should only contain letters, numbers, dashes (-), and underscores (_).',
@@ -98,6 +119,9 @@ class OfficeRequest extends FormRequest
 
             'office_type_id.required' => 'You must select the type of office (e.g., Department, Section).',
             'office_type_id.exists' => 'The selected office type doesn\'t seem to exist. Please choose a valid one.',
+
+            'campus_id.exists' => 'The selected campus doesn\'t seem to exist.',
+            'faculty_id.exists' => 'The selected faculty/college doesn\'t seem to exist.',
 
             'head_id.exists' => 'The selected employee for the head of office doesn\'t seem to exist.',
 
@@ -130,8 +154,11 @@ class OfficeRequest extends FormRequest
     {
         return [
             'name' => 'office name',
+            'short_name' => 'short name',
             'code' => 'office code',
             'office_type_id' => 'office type',
+            'campus_id' => 'campus',
+            'faculty_id' => 'faculty/college',
             'head_id' => 'head of office',
             'head_appointment_date' => 'head appointment date',
             'office_location' => 'office location',

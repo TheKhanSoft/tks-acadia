@@ -12,7 +12,7 @@ class Office extends Model
     use SoftDeletes, HasFactory;
     
     protected $fillable = [
-        'name', 'code', 'office_type_id', 'description', 'head_id', 'campus_id', 'faculty_id',
+        'name', 'short_name', 'code', 'office_type_id', 'description', 'head_id', 'campus_id', 'faculty_id',
         'head_appointment_date', 'office_location', 'contact_email', 
         'contact_phone', 'established_year', 'parent_office_id', 'is_active'
     ];

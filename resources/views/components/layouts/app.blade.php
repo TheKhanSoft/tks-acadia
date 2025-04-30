@@ -19,8 +19,16 @@
 
         {{-- Right side actions --}}
         <x-slot:actions>
-            <x-button label="Messages" tooltip="Messages" icon="o-envelope" link="##" class="btn-ghost btn-sm" responsive />
-            <x-button label="Notifications" icon="o-bell" link="###" class="btn-ghost btn-sm" responsive />
+            <x-button label="Messages" tooltip-left="Messages" icon="o-envelope" link="##" class="btn-ghost btn-sm" responsive />
+            <x-dropdown >
+                <x-slot:trigger>
+                    <x-button label="Notifications" tooltip-left="Notifications" icon="o-bell" link="###" class="btn-ghost btn-sm" responsive />
+                </x-slot:trigger>
+            
+                <x-menu-item title="Archive" />
+                <x-menu-item title="Move" />
+            </x-dropdown>
+            
         </x-slot:actions>
     </x-nav>
     

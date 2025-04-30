@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         $this->call([
+
             // UserSeeder::class,
             // RoleSeeder::class,
             // PermissionsSeeder::class,
@@ -24,7 +25,10 @@ class DatabaseSeeder extends Seeder
             OfficeTypeSeeder::class,
             OfficeSeeder::class,
             
-             // // Department and subjects
+            // //EMPLOYEE RELATED
+            EmploymentStatusSeeder::class
+
+            // // Department and subjects
             // DepartmentSeeder::class,
             // SubjectSeeder::class,
             // DepartmentSubjectSeeder::class,

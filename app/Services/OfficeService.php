@@ -30,9 +30,7 @@ class OfficeService
         }
 
         // Apply search filters if search is enabled and a term is provided
-        if (isset($params['search']) && isset($params['search_term']) && filter_var($params['search'], FILTER_VALIDATE_BOOLEAN)) {
-            $query = $this->applyFilters($query, $params);
-        }
+        $query = $this->applyFilters($query, $params);
 
         // Apply sorting if requested
         if (isset($params['sort_by'])) {
@@ -54,21 +52,34 @@ class OfficeService
      */
     protected function applyFilters(Builder $query, array $params)
     {
-        // Filter by search term across name and code
-        if (!empty($params['search_term'])) {
+
+        if (isset($params['search']) && isset($params['search_term']) && filter_var($params['search'], FILTER_VALIDATE_BOOLEAN)) {
             $searchTerm = $params['search_term'];
             $query->where(function (Builder $q) use ($searchTerm) {
                 $q->where('name', 'like', "%{$searchTerm}%")
+                  ->orWhere('short_name', 'like', "%{$searchTerm}%")
                   ->orWhere('code', 'like', "%{$searchTerm}%")
                    ->orWhere('description', 'like', "%{$searchTerm}%")
-                   ->orWhereHas('officeType', fn($q) => $q->where('name', 'like', "%{$searchTerm}%")) // Search by office type name
-                    ->orWhereHas('head', fn($q) => $q->where('first_name', 'like', "%{$searchTerm}%")->orWhere('last_name', 'like', "%{$searchTerm}%")); // Search by head name
+                   ->orWhereHas('officeType', fn($q) => $q->where('name', 'like', "%{$searchTerm}%"))
+                   ->orWhereHas('campus', fn($q) => $q->where('name', 'like', "%{$searchTerm}%")->orWhere('code', 'like', "%{$searchTerm}%")) 
+                   ->orWhereHas('faculty', fn($q) => $q->where('name', 'like', "%{$searchTerm}%")->orWhere('code', 'like', "%{$searchTerm}%")) 
+                    ->orWhereHas('head', fn($q) => $q->where('first_name', 'like', "%{$searchTerm}%")->orWhere('last_name', 'like', "%{$searchTerm}%"));
             });
         }
 
         // Filter by Office Type ID
         if (!empty($params['office_type_id'])) {
             $query->where('office_type_id', $params['office_type_id']);
+        }
+
+        // Filter by Campus ID
+        if (!empty($params['campus_id'])) {
+            $query->where('campus_id', $params['campus_id']);
+        }
+
+        // Filter by Faculty ID
+        if (!empty($params['faculty_id'])) {
+            $query->where('faculty_id', $params['faculty_id']);
         }
 
         // Filter by Head ID
@@ -110,10 +121,10 @@ class OfficeService
     {
         $sortField = $params['sort_by'] ?? 'name'; // Default sort field
         $sortDirection = isset($params['sort_dir']) && strtolower($params['sort_dir']) === 'desc' ? 'desc' : 'asc'; // Default sort direction
-        
+
         // Define allowed sortable fields for Office
-        $allowedSortFields = ['name', 'code', 'created_at', 'is_active']; 
-        
+        $allowedSortFields = ['name', 'short_name', 'code', 'created_at', 'is_active'];
+
         if (in_array($sortField, $allowedSortFields)) {
             $query->orderBy($sortField, $sortDirection);
         } else {
@@ -129,16 +140,21 @@ class OfficeService
      *
      * @param int $id The ID of the office.
      * @param bool $withTrashed Include soft-deleted records.
+     * @param array $with Relationships to eager load.
      * @return Office|Builder|null
      */
-    public function getOffice(int $id, bool $withTrashed = false)
+    public function getOffice(int $id, bool $withTrashed = false, array $with = [])
     {
         $query = Office::query();
-        
+
         if ($withTrashed) {
             $query->withTrashed();
         }
-        
+
+        if (!empty($with)) {
+            $query->with($with);
+        }
+
         return $query->find($id);
     }
 
@@ -170,8 +186,12 @@ class OfficeService
      */
     public function createOffice(array $validatedData)
     {
+        // Ensure 'code' and 'short_name' are uppercase if needed
         if (isset($validatedData['code'])) {
             $validatedData['code'] = strtoupper($validatedData['code']);
+        }
+        if (isset($validatedData['short_name'])) {
+            $validatedData['short_name'] = strtoupper($validatedData['short_name']); // Assuming short_name should also be uppercase
         }
         return Office::create($validatedData);
     }
@@ -185,10 +205,16 @@ class OfficeService
      */
     public function updateOffice(Office $office, array $validatedData)
     {
-        // Ensure 'code' is uppercase if that's a requirement
+        // Ensure 'code' and 'short_name' are uppercase if needed
         if (isset($validatedData['code'])) {
             $validatedData['code'] = strtoupper($validatedData['code']);
         }
+        if (isset($validatedData['short_name'])) {
+            $validatedData['short_name'] = strtoupper($validatedData['short_name']); // Assuming short_name should also be uppercase
+        }
+        // Ensure nullable fields are handled correctly during update
+        $validatedData['campus_id'] = $validatedData['campus_id'] ?? null;
+        $validatedData['faculty_id'] = $validatedData['faculty_id'] ?? null;
         return $office->update($validatedData);
     }
     

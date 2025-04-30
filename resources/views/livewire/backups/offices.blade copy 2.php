@@ -13,20 +13,15 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use App\Models\OfficeType;
 use App\Models\Employee;
-use App\Models\Campus;
-use App\Models\Faculty;
 
 new class extends Component {
     use WithPagination, Toast;
 
     public $officeId = null;
     public $name;
-    public $short_name; // Added
     public $code;
     public $description;
     public $office_type_id;
-    public $campus_id; // Added
-    public $faculty_id; // Added
     public $head_id;
     public $head_appointment_date;
     public $office_location;
@@ -40,8 +35,6 @@ new class extends Component {
     public $officeTypes = [];
     public $employees = [];
     public $parentOffices = [];
-    public $campuses = []; // Added
-    public $faculties = []; // Added
 
     // Table & Filtering properties
     public $perPage = 10;
@@ -76,10 +69,6 @@ new class extends Component {
     public $filterEstablishedYearStart = null;
     #[Url]
     public $filterEstablishedYearEnd = null;
-    #[Url]
-    public $filterCampusId = null; // Added
-    #[Url]
-    public $filterFacultyId = null; // Added
 
     // Modal tab control
     public $selectedTab = 'basic'; // Default to the 'basic' tab
@@ -177,28 +166,20 @@ new class extends Component {
         // Exclude the current office being edited from parent options
         $this->parentOffices = Office::where('is_active', true)
             ->when($this->officeId, fn($q) => $q->where('id', '!=', $this->officeId))
-            ->with('campus:id,code') // Eager load campus code
             ->orderBy('name')
-            ->get(['id', 'name', 'campus_id']); // Include campus_id
-        $this->campuses = Campus::where('is_active', true)
-            ->orderBy('name')
-            ->get(['id', 'name', 'code']);
-        $this->faculties = Faculty::where('is_active', true)
-            ->orderBy('name')
-            ->get(['id', 'name', 'code']); // Added faculty loading
+            ->get(['id', 'name']);
     }
 
     public function openModal($officeId = null, OfficeService $officeService)
     {
         $this->resetValidation();
-        $this->resetExcept(['search', 'sortField', 'sortDirection', 'perPage', 'showDeletedRecords', 'selectedOffices', 'selectAll', 'headers', 'officeTypes', 'employees', 'campuses', 'faculties']); // Keep pre-loaded options
+        $this->resetExcept(['search', 'sortField', 'sortDirection', 'perPage', 'showDeletedRecords', 'selectedOffices', 'selectAll', 'headers', 'officeTypes', 'employees']); // Keep pre-loaded options
 
         // Refresh parent offices excluding the potential current one
         $this->parentOffices = Office::where('is_active', true)
             ->when($officeId, fn($q) => $q->where('id', '!=', $officeId))
-            ->with('campus:id,code') // Eager load campus code
             ->orderBy('name')
-            ->get(['id', 'name', 'campus_id']); // Include campus_id
+            ->get(['id', 'name']);
 
         $this->showModal = true;
         $this->officeId = $officeId;
@@ -207,11 +188,8 @@ new class extends Component {
         if ($officeId) {
             $office = $officeService->getOffice($officeId, true);
             $this->name = $office->name;
-            $this->short_name = $office->short_name; // Added
             $this->code = $office->code;
             $this->office_type_id = $office->office_type_id;
-            $this->campus_id = $office->campus_id; // Added
-            $this->faculty_id = $office->faculty_id; // Added
             $this->description = $office->description;
             $this->head_id = $office->head_id;
             $this->head_appointment_date = $office->head_appointment_date ? $office->head_appointment_date->format('Y-m-d') : null;
@@ -224,11 +202,8 @@ new class extends Component {
         } else {
             // Reset all form fields for a new entry
             $this->name = '';
-            $this->short_name = ''; // Added
             $this->code = '';
             $this->office_type_id = null;
-            $this->campus_id = null; // Added
-            $this->faculty_id = null; // Added
             $this->description = '';
             $this->head_id = null;
             $this->head_appointment_date = null;
@@ -270,24 +245,10 @@ new class extends Component {
         $messages = $request->messages();
         $attributes = $request->attributes();
 
-        // Conditionally require faculty_id only if office_type_id is 2 or 3
-        if (in_array($this->office_type_id, [2, 3])) {
-            // You might want to add a specific rule here if needed,
-            // e.g., $rules['faculty_id'] = 'required|exists:faculties,id';
-            // For now, we just include it in validation if the type matches.
-        } else {
-            // If office type is not 2 or 3, ensure faculty_id is nullified before saving
-            $this->faculty_id = null;
-        }
-
-
         $dataToValidate = [
             'name' => $this->name,
-            'short_name' => $this->short_name, // Added
             'code' => $this->code,
             'office_type_id' => $this->office_type_id,
-            'campus_id' => $this->campus_id, // Added
-            'faculty_id' => $this->faculty_id, // Added
             'description' => $this->description,
             'head_id' => $this->head_id,
             'head_appointment_date' => $this->head_appointment_date,
@@ -302,11 +263,6 @@ new class extends Component {
         $validatedData = Validator::make($dataToValidate, $rules, $messages, $attributes)->validate();
 
         $validatedData['code'] = strtoupper($validatedData['code']);
-
-        // Ensure faculty_id is null if the office type doesn't require it
-        if (!in_array($validatedData['office_type_id'], [2, 3])) {
-             $validatedData['faculty_id'] = null;
-        }
 
         try {
             if ($this->officeId) {
@@ -526,15 +482,6 @@ new class extends Component {
         if ($this->filterEstablishedYearEnd) {
             $filters[] = ['key' => 'filterEstablishedYearEnd', 'label' => 'Est. To', 'value' => $this->filterEstablishedYearEnd];
         }
-        // Added Campus and Faculty filters display
-        if ($this->filterCampusId) {
-            $campusName = $this->campuses->firstWhere('id', $this->filterCampusId)?->name ?? 'Unknown Campus';
-            $filters[] = ['key' => 'filterCampusId', 'label' => 'Campus', 'value' => $campusName];
-        }
-        if ($this->filterFacultyId) {
-            $facultyName = $this->faculties->firstWhere('id', $this->filterFacultyId)?->name ?? 'Unknown Faculty';
-            $filters[] = ['key' => 'filterFacultyId', 'label' => 'Faculty', 'value' => $facultyName];
-        }
 
         return $filters;
     }
@@ -550,9 +497,10 @@ new class extends Component {
         $this->resetPage(); // Reset pagination after removing a filter
         $this->success('Filter removed.');
     }
+
     public function resetFilters()
     {
-        $this->reset('filterOfficeTypeId', 'filterHeadId', 'filterStatus', 'filterParentOfficeId', 'filterEstablishedYearStart', 'filterEstablishedYearEnd', 'filterCampusId', 'filterFacultyId'); // Added campus/faculty reset
+        $this->reset('filterOfficeTypeId', 'filterHeadId', 'filterStatus', 'filterParentOfficeId', 'filterEstablishedYearStart', 'filterEstablishedYearEnd');
         $this->resetPage(); // Reset pagination when filters are reset
         $this->success('Filters reset.');
     }
@@ -576,8 +524,6 @@ new class extends Component {
             'parent_office_id' => $this->filterParentOfficeId,
             'established_year_start' => $this->filterEstablishedYearStart,
             'established_year_end' => $this->filterEstablishedYearEnd,
-            'campus_id' => $this->filterCampusId, // Added campus filter
-            'faculty_id' => $this->filterFacultyId, // Added faculty filter
         ];
 
         // Remove null/empty filters to avoid sending unnecessary parameters,
@@ -644,8 +590,7 @@ new class extends Component {
             class="px-4 py-2 bg-gray-100 dark:bg-gray-800 border-b dark:border-gray-700 flex flex-wrap items-center gap-2">
             <span class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Active Filters:</span>
             @foreach ($this->activeFilters as $filter)
-                <x-badge class="badge-primary badge-xs font-semibold gap-1"
-                    value="{{ $filter['label'] }} : {{ $filter['value'] }}" />
+                <x-badge class="badge-primary badge-xs font-semibold gap-1" value="{{ $filter['label'] }} : {{ $filter['value'] }}" />
             @endforeach
             <x-button label="Clear All" wire:click="resetFilters" class="btn-ghost btn-xs text-red-500" spinner />
         </div>
@@ -896,53 +841,32 @@ new class extends Component {
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Name Field -->
                         <div>
-                            <x-input wire:model="name" label="Office Name" placeholder="Enter office name" icon="o-identification" inline
+                            <x-input wire:model="name" label="Office Name" placeholder="Enter office name" inline
                                 required />
-                        </div>
-
-                        <!-- Short Name Field -->
-                        <div>
-                            <x-input wire:model="short_name" label="Short Name / Acronym" icon="o-identification"
-                                placeholder="Enter short name/acronym (e.g. Registrar, Academics)" inline />
                         </div>
 
                         <!-- Code Field -->
                         <div>
-                            <x-input wire:model="code" label="Office Code" icon="o-hashtag"
+                            <x-input wire:model="code" label="Office Code"
                                 placeholder="Enter unique code (e.g. REG, VPA)" inline required />
                         </div>
 
                         <!-- Office Type Field -->
                         <div>
-                            {{-- Use wire:model.live to update immediately --}}
-                            <x-select wire:model.live="office_type_id" label="Office Type" :options="$officeTypes" icon="o-building-office-2"
+                            <x-select wire:model="office_type_id" label="Office Type" :options="$officeTypes"
                                 placeholder="Select type" inline required />
                         </div>
 
-                        <!-- Campus Field -->
-                        <div>
-                            <x-select wire:model="campus_id" label="Campus" :options="$campuses" icon="o-academic-cap"
-                                placeholder="Select campus (if applicable)" inline clearable />
-                        </div>
-
-                        <!-- Faculty Field (Conditional) -->
-                        @if (in_array($office_type_id, [2, 3]))
-                            <div>
-                                <x-select wire:model="faculty_id" label="Faculty / College" :options="$faculties" icon="o-building-office"
-                                    placeholder="Select faculty (if applicable)" inline clearable />
-                            </div>
-                        @endif
-
                         <!-- Location Field -->
                         <div>
-                            <x-input wire:model="office_location" label="Location" icon="o-map-pin"
-                                placeholder="Location e.g. Admin Bldg, Room 201" inline />
+                            <x-input wire:model="office_location" label="Location"
+                                placeholder="e.g. Admin Bldg, Room 201" inline />
                         </div>
 
                         <!-- Established Year Field -->
                         <div>
-                            <x-input wire:model="established_year" label="Established Year" type="number" icon="o-calendar-days"
-                                placeholder="Established Year (YYYY)" min="1800" max="{{ date('Y') }}" inline />
+                            <x-input wire:model="established_year" label="Established Year" type="number"
+                                placeholder="YYYY" min="1800" max="{{ date('Y') }}" inline />
                         </div>
 
                         <!-- Active Status Field -->
@@ -953,7 +877,7 @@ new class extends Component {
 
                         <!-- Description Field -->
                         <div class="md:col-span-2">
-                            <x-textarea wire:model="description" label="Description" icon="o-document-text"
+                            <x-textarea wire:model="description" label="Description"
                                 placeholder="Enter office details" rows="3" inline />
                         </div>
                     </div>
@@ -964,19 +888,19 @@ new class extends Component {
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Head of Office Field -->
                         <div>
-                            <x-select wire:model="head_id" label="Head of Office" :options="$employees" icon="o-user-circle"
+                            <x-select wire:model="head_id" label="Head of Office" :options="$employees"
                                 option-label="full_name" placeholder="Select head" inline />
                         </div>
 
                         <!-- Head Appointment Date Field -->
                         <div>
                             <x-datepicker wire:model="head_appointment_date" label="Appointment Date"
-                                icon="o-calendar" inline /> {{-- Icon already present --}}
+                                icon="o-calendar" inline />
                         </div>
 
                         <!-- Parent Office Field -->
                         <div class="md:col-span-2">
-                            <x-select wire:model="parent_office_id" label="Parent Office" :options="$parentOffices" icon="o-building-library"
+                            <x-select wire:model="parent_office_id" label="Parent Office" :options="$parentOffices"
                                 placeholder="Select parent (if any)" inline />
                         </div>
                     </div>
@@ -987,13 +911,13 @@ new class extends Component {
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Contact Phone Field -->
                         <div>
-                            <x-input wire:model="contact_phone" label="Contact Phone" icon="o-phone"
+                            <x-input wire:model="contact_phone" label="Contact Phone"
                                 placeholder="Enter phone number" inline />
                         </div>
 
                         <!-- Contact Email Field -->
                         <div>
-                            <x-input wire:model="contact_email" label="Contact Email" type="email" icon="o-envelope"
+                            <x-input wire:model="contact_email" label="Contact Email" type="email"
                                 placeholder="Enter email address" inline />
                         </div>
                     </div>
@@ -1106,8 +1030,7 @@ new class extends Component {
                                     class="h-5 w-5 mr-2 mt-0.5 text-gray-400 dark:text-gray-500" />
                                 {{-- Icon for Faculty --}}
                                 <div>
-                                    <div
-                                        class="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 font-semibold">
+                                    <div class="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 font-semibold">
                                         Faculty / College</div>
                                     <p class="text-sm text-gray-900 dark:text-white">
                                         {{ $viewOffice->faculty->name }} ({{ $viewOffice->faculty->code }})
@@ -1190,8 +1113,7 @@ new class extends Component {
                             <div>
                                 <div class="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-1">
                                     Description</div>
-                                <div
-                                    class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 shadow-inner max-h-40 overflow-y-auto">
+                                <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 shadow-inner max-h-40 overflow-y-auto">
                                     <div class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                                         {{ $viewOffice->description ?: 'No description provided.' }}
                                     </div>
@@ -1411,13 +1333,6 @@ new class extends Component {
     <!-- Advanced Filter Drawer -->
     <x-drawer wire:model="showFilterDrawer" title="Advanced Filters" right separator with-close-button
         class="w-11/12 lg:w-1/3">
-        @php
-            // Format parent office options for the filter select
-            $formattedParentOfficeOptions = $parentOffices->map(function ($office) {
-                $campusCode = $office->campus ? " ({$office->campus->code})" : '';
-                return ['id' => $office->id, 'name' => $office->name . $campusCode];
-            });
-        @endphp
         {{-- Using wire:submit to close drawer on Apply, though filters apply live --}}
         <x-form wire:submit.prevent="$toggle('showFilterDrawer')">
             <div class="p-4 space-y-6"> {{-- Increased spacing --}}
@@ -1438,19 +1353,18 @@ new class extends Component {
 
                 {{-- Filter by Status --}}
                 <div>
-                    @php
-                        $active_filter = [
-                            ['id' => '', 'name' => 'All', 'hint' => 'Show records either it is active and inactive'],
-                            ['id' => 'active', 'name' => 'Active', 'hint' => 'Show records if status is active.'],
-                            ['id' => 'inactive', 'name' => 'Inactive', 'hint' => 'Show records if status is inactive.'],
-                        ];
-                    @endphp
-                    <x-group label="Status" wire:model.live="filterStatus" :options="$active_filter" class="btn-sm" />
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+                    <div class="flex space-x-4">
+                        <x-radio wire:model.live="filterStatus" value="" label="All" class="radio-sm" />
+                        <x-radio wire:model.live="filterStatus" value="active" label="Active" class="radio-sm" />
+                        <x-radio wire:model.live="filterStatus" value="inactive" label="Inactive"
+                            class="radio-sm" />
+                    </div>
                 </div>
 
                 {{-- Filter by Parent Office --}}
-                {{-- Use the formatted options --}}
-                <x-select wire:model.live="filterParentOfficeId" label="Parent Office" :options="$formattedParentOfficeOptions"
+                {{-- Use the pre-loaded $parentOffices --}}
+                <x-select wire:model.live="filterParentOfficeId" label="Parent Office" :options="$parentOffices"
                     placeholder="Any Parent" icon="o-arrow-up-circle" clearable />
 
                 {{-- Filter by Established Year Range --}}
@@ -1466,14 +1380,6 @@ new class extends Component {
                             icon="o-calendar-days" />
                     </div>
                 </div>
-
-                {{-- Filter by Campus --}}
-                <x-select wire:model.live="filterCampusId" label="Campus" :options="$campuses"
-                    placeholder="All Campuses" icon="o-academic-cap" clearable />
-
-                {{-- Filter by Faculty/College --}}
-                <x-select wire:model.live="filterFacultyId" label="Faculty / College" :options="$faculties"
-                    placeholder="All Faculties" icon="o-building-office" clearable />
 
             </div>
         </x-form>
