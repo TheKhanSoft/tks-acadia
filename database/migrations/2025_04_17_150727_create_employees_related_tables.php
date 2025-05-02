@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('employment_statuses', function (Blueprint $table) {
+        Schema::create('employee_work_statuses', function (Blueprint $table) {
             $table->id();
-            $table->string('type');
+            $table->string('name');
             $table->string('code')->unique();
             $table->text('description')->nullable()->comment('remarks, comments, description etc.');
             $table->boolean('is_active')->default(true);
@@ -50,7 +50,7 @@ return new class extends Migration
             $table->string('specialization')->nullable()->comment('Latest Specialization field.');
             $table->string('photo_path')->nullable();
             $table->text('bio')->nullable();
-            $table->foreignId('employment_status_id')->constrained();
+            $table->foreignId('employee_work_status_id')->constrained('employee_work_statuses');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->softDeletes();
@@ -64,6 +64,6 @@ return new class extends Migration
     {
         Schema::dropIfExists('employees');
         Schema::dropIfExists('employee_types');
-        Schema::dropIfExists('employment_statuses');
+        Schema::dropIfExists('employee_work_statuses');
     }
 };

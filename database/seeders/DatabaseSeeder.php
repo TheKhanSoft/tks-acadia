@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Database\Seeders\JobNatureSeeder;
+use Database\Seeders\PaymentMethodSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -26,7 +28,10 @@ class DatabaseSeeder extends Seeder
             OfficeSeeder::class,
             
             // //EMPLOYEE RELATED
-            EmploymentStatusSeeder::class
+            EmployeeWorkStatusSeeder::class,
+            EmployeeTypeSeeder::class, // Added EmployeeTypeSeeder
+            JobNatureSeeder::class,
+            PaymentMethodSeeder::class,
 
             // // Department and subjects
             // DepartmentSeeder::class,

@@ -6,12 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class EmploymentStatus extends Model
+class EmployeeWorkStatus extends Model
 {
     use SoftDeletes, HasFactory;
     
     protected $fillable = [
-        'type', 'code', 'description', 'is_active'
+        'name', 'code', 'description', 'is_active'
     ];
     
     protected $casts = [

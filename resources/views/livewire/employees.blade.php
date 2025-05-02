@@ -280,7 +280,6 @@ new class extends Component {
             $this->faculty_id = null;
         }
 
-
         $dataToValidate = [
             'name' => $this->name,
             'short_name' => $this->short_name, // Added

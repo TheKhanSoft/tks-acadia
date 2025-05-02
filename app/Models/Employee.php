@@ -2,19 +2,20 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Employee extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasFactory;
     
     protected $fillable = [
         'employee_id', 'first_name', 'last_name', 'email', 'phone', 'gender', 'nic_no',
         'date_of_birth', 'employee_type_id', 'appointment_date', 'termination_date',
         'postal_address', 'permanent_address',
         'qualification', 'specialization', 'photo_path', 'bio',
-        'employment_status_id', 'is_active'
+        'employee_work_status_id', 'is_active'
     ];
     
     protected $casts = [
@@ -29,9 +30,9 @@ class Employee extends Model
         return $this->belongsTo(EmployeeType::class);
     }
 
-    public function employmentStatus()
+    public function employeeWorkStatus()
     {
-        return $this->belongsTo(EmploymentStatus::class);
+        return $this->belongsTo(EmployeeWorkStatus::class);
     }
     
     public function offices()

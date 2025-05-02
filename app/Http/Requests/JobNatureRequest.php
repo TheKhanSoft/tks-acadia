@@ -4,43 +4,45 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use App\Models\OfficeType;
 
-class OfficeTypeRequest extends FormRequest
+class JobNatureRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
-    public function authorize()
+    public function authorize(): bool
     {
-
-        return true; 
+        // Implement your authorization logic here
+        return true;
     }
 
     /**
      * Get the validation rules that apply to the request.
      *
-     * @param int|null $officeTypeId The ID of the office type being updated, if any.
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    public function rules(?int $officeTypeId = null)
+    public function rules($jobNatureId)
     {
         return [
             'name' => [
-                'required', 
+                'required',
                 'string',
-                'min:3', 
+                'min:3',
                 'max:255',
-                Rule::unique('office_types', 'name')->ignore($officeTypeId) 
+                Rule::unique('job_natures', 'name')->ignore($jobNatureId)
             ],
+
             'code' => [
                 'required', 
                 'string', 
-                'max:50', 
+                'min:2',
+                'max:6', 
                 'alpha_dash', 
-                Rule::unique('office_types', 'code')->ignore($officeTypeId) 
+                Rule::unique('office_types', 'code')->ignore($jobNatureId) 
             ],
+
             'description' => ['nullable', 'string', 'max:1000'], 
+            
             'is_active' => ['sometimes', 'boolean'], 
         ];
     }
@@ -53,18 +55,19 @@ class OfficeTypeRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => "An office type needs a name, like 'Department' or 'Section'.",
+            'name.required' => "Hold On! Each job nature must have a unique name!",
             'name.min' => "The name needs at least 3 characters.",
-            'name.max' => "The name is too long. Keep it under 255 characters.",
-            'name.unique' => "Oops! An office type with this name already exists.",
-            
-            'code.required' => "Every office type needs a unique code.",
-            'code.string' => "The code must be a text string.",
-            'code.max' => "The code is too long. Keep it under 50 characters.",
-            'code.unique' => "This code is already in use. Please choose another.",
+            'name.max' => "Whoa there! The name is too long. Keep it under 255 characters.",
+            'name.unique' => "Oops! Looks like the name already exists. Please choose another unique name.",
+
+            'code.required' => "Every job nature needs a unique code. Write a code of 2 to 6 characters.",
+            'code.string' => "The code must be a text string and at least 2 and at most 6 characters.",
+            'code.min' => "Oops, The code is too short. Keep it at least 2 characters.",
+            'code.max' => "The code is too long. Keep it under 6 characters.",
+            'code.unique' => "That is not good! This code is already in use. You should choose another.",
             'code.alpha_dash' => "Codes can only contain letters, numbers, dashes, and underscores.",
             
-            'description.max' => "The description is too long. Keep it under 1000 characters.",
+            'description.max' => "Hey! The description is too long. Keep it under 1000 characters.",
             
             'is_active.boolean' => "Active status must be either true or false."
         ];
@@ -77,10 +80,9 @@ class OfficeTypeRequest extends FormRequest
      */
     public function attributes(): array
     {
-        // Friendly names for attributes in error messages
         return [
-            'name' => 'office type name',
-            'code' => 'office type code',
+            'name' => 'job nature name',
+            'code' => 'job nature code',
             'is_active' => 'active status',
             'description' => 'description',
         ];
@@ -97,9 +99,9 @@ class OfficeTypeRequest extends FormRequest
         // Convert code to uppercase for consistency
         $this->merge([
             'code' => strtoupper($this->code),
-            // Set default for is_active only if it's not an update (i.e., office_type route param is not set)
+            // Set default for is_active only if it's not an update (i.e., job_nature route param is not set)
             // and if is_active is not already present in the request
-            'is_active' => $this->route('office_type') ? $this->is_active : ($this->is_active ?? true),
+            'is_active' => $this->route('job_nature') ? $this->is_active : ($this->is_active ?? true),
         ]);
     }
 }

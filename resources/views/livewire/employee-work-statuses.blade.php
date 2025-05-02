@@ -1,8 +1,8 @@
 <?php
 
-use App\Models\OfficeType;
-use App\Services\OfficeTypeService;
-use App\Http\Requests\OfficeTypeRequest;
+use App\Models\EmployeeWorkStatus;
+use App\Services\EmployeeWorkStatusService;
+use App\Http\Requests\EmployeeWorkStatusRequest;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Url;
@@ -16,7 +16,7 @@ new class extends Component
 {
     use WithPagination, Toast; 
 
-    public $officeTypeId = null;
+    public $workStatusId = null;
     public $name;
     public $code;
     public $description;
@@ -27,12 +27,12 @@ new class extends Component
     public $sortField = 'name';
     public $sortDirection = 'asc';
     public $showDeletedRecords = false; 
-    public $selectedOfficeTypes = [];
+    public $selectedEmployeeWorkStatuses = [];
     public $selectAll = false;
 
     public $showModal = false; 
     public $showViewModal = false;
-    public $viewOfficeType = null;
+    public $viewEmployeeWorkStatus = null;
     public $confirmingDeletion = false;
     public $confirmingBulkDeletion = false;
     public $confirmingPermanentDeletion = false; 
@@ -60,7 +60,7 @@ new class extends Component
     public function updatedShowDeletedRecords()
     {
         $this->resetPage();
-        $this->selectedOfficeTypes = [];
+        $this->selectedEmployeeWorkStatuses = [];
         $this->selectAll = false;
     }
 
@@ -81,37 +81,37 @@ new class extends Component
 
     public function updatedSelectAll($value)
     {
-        $items = $this->getOfficeTypes(new OfficeTypeService);
+        $items = $this->getEmployeeWorkStatuses(new EmployeeWorkStatusService);
         $itemIds = $items->pluck('id')->map(fn($id) => (string) $id)->toArray();
         
         if ($value) {
-            $this->selectedOfficeTypes = array_unique(array_merge($this->selectedOfficeTypes, $itemIds));
+            $this->selectedEmployeeWorkStatuses = array_unique(array_merge($this->selectedEmployeeWorkStatuses, $itemIds));
         } else {
-            $this->selectedOfficeTypes = array_diff($this->selectedOfficeTypes, $itemIds);
+            $this->selectedEmployeeWorkStatuses = array_diff($this->selectedEmployeeWorkStatuses, $itemIds);
         }
     }
 
-    public function updatedSelectedOfficeTypes($value)
+    public function updatedSelectedEmployeeWorkStatuses($value)
     {   
-        $items = $this->getOfficeTypes(new OfficeTypeService);
+        $items = $this->getEmployeeWorkStatuses(new EmployeeWorkStatusService);
         $itemIds = $items->pluck('id')->map(fn($id) => (string) $id)->toArray();
-        $this->selectAll = !empty($itemIds) && empty(array_diff($itemIds, $this->selectedOfficeTypes));
+        $this->selectAll = !empty($itemIds) && empty(array_diff($itemIds, $this->selectedEmployeeWorkStatuses));
     }
 
-    public function openModal($officeTypeId = null, OfficeTypeService $officeTypeService)
+    public function openModal($workStatusId = null, EmployeeWorkStatusService $employeeWorkStatusService)
     {
         $this->resetValidation();
-        $this->resetExcept(['search', 'sortField', 'sortDirection', 'perPage', 'showDeletedRecords', 'selectedOfficeTypes', 'selectAll', 'headers']);
+        $this->resetExcept(['search', 'sortField', 'sortDirection', 'perPage', 'showDeletedRecords', 'selectedEmployeeWorkStatuses', 'selectAll', 'headers']);
 
         $this->showModal = true;
-        $this->officeTypeId = $officeTypeId;
+        $this->workStatusId = $workStatusId;
 
-        if ($officeTypeId) {
-            $officeType = $officeTypeService->getOfficeType($officeTypeId, true);
-            $this->name = $officeType->name;
-            $this->code = $officeType->code;
-            $this->description = $officeType->description;
-            $this->is_active = $officeType->is_active;
+        if ($workStatusId) {
+            $employeeWorkStatus = $employeeWorkStatusService->getEmployeeWorkStatus($workStatusId, true);
+            $this->name = $employeeWorkStatus->name;
+            $this->code = $employeeWorkStatus->code;
+            $this->description = $employeeWorkStatus->description;
+            $this->is_active = $employeeWorkStatus->is_active;
         } else {
             $this->name = '';
             $this->code = '';
@@ -120,9 +120,9 @@ new class extends Component
         }
     }
 
-    public function openViewModal($officeTypeId, OfficeTypeService $officeTypeService)
+    public function openViewModal($workStatusId, EmployeeWorkStatusService $employeeWorkStatusService)
     {
-        $this->viewOfficeType = $officeTypeService->getOfficeType($officeTypeId, true);; 
+        $this->viewEmployeeWorkStatus = $employeeWorkStatusService->getEmployeeWorkStatus($workStatusId, true);; 
         $this->showViewModal = true;
     }
 
@@ -136,14 +136,14 @@ new class extends Component
         $this->confirmingBulkPermanentDeletion = false;
         $this->confirmingRestore = false;
         $this->confirmingBulkRestore = false;
-        $this->officeTypeId = null; 
-        $this->viewOfficeType = null;
+        $this->workStatusId = null; 
+        $this->viewEmployeeWorkStatus = null;
     }
 
-    public function save(OfficeTypeService $officeTypeService) 
+    public function save(EmployeeWorkStatusService $employeeWorkStatusService) 
     {
-        $request = new OfficeTypeRequest();
-        $currentId = $this->officeTypeId;
+        $request = new EmployeeWorkStatusRequest();
+        $currentId = $this->workStatusId;
         $rules = $request->rules($currentId);
         $messages = $request->messages();
         $attributes = $request->attributes();
@@ -160,28 +160,29 @@ new class extends Component
         $validatedData['code'] = strtoupper($validatedData['code']);
 
         try {
-            if ($this->officeTypeId) {
-                $officeType = $officeTypeService->getOfficeType($this->officeTypeId);
-                $officeTypeService->updateOfficeType($officeType, $validatedData);
-                $this->success('Office Type updated successfully! 🏢'); 
+            if ($this->workStatusId) {
+                $employeeWorkStatus = $employeeWorkStatusService->getEmployeeWorkStatus($this->workStatusId);
+                $employeeWorkStatusService->updateEmployeeWorkStatus($employeeWorkStatus, $validatedData);
+                $this->success('Employee Work Status updated successfully! 🏢'); 
             } else {
-                $officeTypeService->createOfficeType($validatedData);
-                $this->success('New Office Type added successfully! ✨'); 
+                $employeeWorkStatusService->createEmployeeWorkStatus($validatedData);
+                $this->success('New Employee Work Status added successfully! ✨'); 
             }
             $this->closeModal();
         } catch (\Exception $e) {
-            \Log::error("Office Type Save Error: " . $e->getMessage(), ['exception' => $e]);
-            $this->error('An error occurred while saving the Office Type.'); 
+            \Log::error("Employee Work Status Save Error: " . $e->getMessage(), ['exception' => $e]);
+            $this->error('An error occurred while saving the Employee Work Status.'); 
         }
     }
 
-    public function toggleActive($officeTypeId, OfficeTypeService $officeTypeService)
+    public function toggleActive($workStatusId, EmployeeWorkStatusService $employeeWorkStatusService)
     {
         try {
-            $officeType = $officeTypeService->getOfficeType($officeTypeId);
-            $officeTypeService->toggleActiveStatus($officeType);
-            $statusText = $officeType->is_active ? 'activated' : 'deactivated';
-            $this->success("Office Type {$statusText} successfully! 🔄");
+            $employeeWorkStatus = $employeeWorkStatusService->getEmployeeWorkStatus($workStatusId);
+            $employeeWorkStatusService->toggleActiveStatus($employeeWorkStatus);
+            $employeeWorkStatus->is_active ? 
+                $this->success("Employee Work Status activated successfully! 🔄") : 
+                $this->warning("Employee Work Status deactivated successfully! 🔄");
         } catch (\Exception $e) {
             \Log::error("Toggle Active Error: " . $e->getMessage(), ['exception' => $e]);
             $this->error('Failed to toggle status.');
@@ -192,7 +193,7 @@ new class extends Component
     {
         if (!$action) return;
 
-        if (empty($this->selectedOfficeTypes)) {
+        if (empty($this->selectedEmployeeWorkStatuses)) {
             $this->warning('Please select office types first 🤔');
             return;
         }
@@ -205,33 +206,32 @@ new class extends Component
         ];
         ;
         if ($action === 'bulkToggleActive') {
-            $this->bulkToggleActive(new OfficeTypeService()); 
+            $this->bulkToggleActive(new EmployeeWorkStatusService()); 
         } elseif (isset($confirmationMap[$action])) {
             $this->{$confirmationMap[$action]} = true; 
         }
 
-        // Reset the dropdown selection visually (optional, depends on desired UX)
         $this->handleBulkAction = '';
     }
 
-    public function bulkToggleActive(OfficeTypeService $officeTypeService)
+    public function bulkToggleActive(EmployeeWorkStatusService $employeeWorkStatusService)
     {
-        if (empty($this->selectedOfficeTypes)) {
+        if (empty($this->selectedEmployeeWorkStatuses)) {
             $this->warning('Please select office types to toggle status 🤔');
             return;
         }
 
         try {
-            $officeTypes = $officeTypeService->getOfficeTypes($this->selectedOfficeTypes)->get();
-            $toggledStatuses = $officeTypeService->bulkToggleActiveStatus($officeTypes);
+            $employeeWorkStatuses = $employeeWorkStatusService->getEmployeeWorkStatuses($this->selectedEmployeeWorkStatuses)->get();
+            $toggledStatuses = $employeeWorkStatusService->bulkToggleActiveStatus($employeeWorkStatuses);
             $this->success(
-                "Bulk toggle operation for Office Type successful🔄", 
+                "Bulk toggle operation for Employee Work Status successful🔄", 
                 "<br />Total Toggles: <b>$toggledStatuses[totalToggledCount]</b><br />
                 Activated: <b>$toggledStatuses[activatedCount]</b><br />
                 Deactivated: <b>$toggledStatuses[deactivatedCount]</b><br />
                 " 
             );
-            $this->selectedOfficeTypes = [];
+            $this->selectedEmployeeWorkStatuses = [];
             $this->selectAll = false;
             $this->handleBulkAction = '';
             
@@ -241,33 +241,33 @@ new class extends Component
         }
     }
 
-    public function confirmDelete($officeTypeId)
+    public function confirmDelete($workStatusId)
     {
-        $this->officeTypeId = $officeTypeId;
+        $this->workStatusId = $workStatusId;
         $this->confirmingDeletion = true;
     }
 
-    public function delete(OfficeTypeService $officeTypeService)
+    public function delete(EmployeeWorkStatusService $employeeWorkStatusService)
     {
         try {
-            $successful = $officeTypeService->deleteOfficeTypeById($this->officeTypeId); 
+            $successful = $employeeWorkStatusService->deleteEmployeeWorkStatusById($this->workStatusId); 
             $this->confirmingDeletion = false;
-            $successful ? $this->warning('Office Type deleted successfully! 🗑️') : $this->error('Failed to delete Office Type.');
-            $this->officeTypeId = null;
+            $successful ? $this->warning('Employee Work Status deleted successfully! 🗑️') : $this->error('Failed to delete Employee Work Status.');
+            $this->workStatusId = null;
         } catch (\Exception $e) {
-            \Log::error("Office Type Delete Error: " . $e->getMessage(), ['exception' => $e]);
+            \Log::error("Employee Work Status Delete Error: " . $e->getMessage(), ['exception' => $e]);
             $this->confirmingDeletion = false;
-            $this->error('Failed to delete Office Type.');
+            $this->error('Failed to delete Employee Work Status.');
         }
     }
 
-    public function bulkDelete(OfficeTypeService $officeTypeService)
+    public function bulkDelete(EmployeeWorkStatusService $employeeWorkStatusService)
     {
         try {
-            $successful = $officeTypeService->bulkDeleteOfficeTypeByIds($this->selectedOfficeTypes);
+            $successful = $employeeWorkStatusService->bulkDeleteEmployeeWorkStatuses($this->selectedEmployeeWorkStatuses);
             $this->confirmingBulkDeletion = false;
-            $successful ? $this->warning(count($this->selectedOfficeTypes) . ' office types deleted successfully! 🗑️') : $this->error('Failed to delete selected office types.');
-            $this->selectedOfficeTypes = [];
+            $successful ? $this->warning(count($this->selectedEmployeeWorkStatuses) . ' office types deleted successfully! 🗑️') : $this->error('Failed to delete selected office types.');
+            $this->selectedEmployeeWorkStatuses = [];
             $this->selectAll = false;
         } catch (\Exception $e) {
             \Log::error("Bulk Delete Error: " . $e->getMessage(), ['exception' => $e]);
@@ -277,33 +277,33 @@ new class extends Component
     }
 
     // Restore operations matching campuses.blade.php
-    public function confirmRestore($officeTypeId)
+    public function confirmRestore($workStatusId)
     {
-        $this->officeTypeId = $officeTypeId;
+        $this->workStatusId = $workStatusId;
         $this->confirmingRestore = true;
     }
 
-    public function restore(OfficeTypeService $officeTypeService)
+    public function restore(EmployeeWorkStatusService $employeeWorkStatusService)
     {
         try {
-            $successful = $officeTypeService->restoreOfficeType($this->officeTypeId);
+            $successful = $employeeWorkStatusService->restoreEmployeeWorkStatus($this->workStatusId);
             $this->confirmingRestore = false;
-            $successful ? $this->success('Office Type restored successfully! ♻️') : $this->error('Failed to restore Office Type.');
-            $this->officeTypeId = null;
+            $successful ? $this->success('Employee Work Status restored successfully! ♻️') : $this->error('Failed to restore Employee Work Status.');
+            $this->workStatusId = null;
         } catch (\Exception $e) {
-            \Log::error("Office Type Restore Error: " . $e->getMessage(), ['exception' => $e]);
+            \Log::error("Employee Work Status Restore Error: " . $e->getMessage(), ['exception' => $e]);
             $this->confirmingRestore = false; // Close modal even on error
-            $this->error('Failed to restore Office Type.');
+            $this->error('Failed to restore Employee Work Status.');
         }
     }
 
-    public function bulkRestore(OfficeTypeService $officeTypeService)
+    public function bulkRestore(EmployeeWorkStatusService $employeeWorkStatusService)
     {
         try {
-            $successful = $officeTypeService->bulkRestoreOfficeTypes($this->selectedOfficeTypes);
+            $successful = $employeeWorkStatusService->bulkRestoreEmployeeWorkStatuses($this->selectedEmployeeWorkStatuses);
             $this->confirmingBulkRestore = false;
-            $successful ? $this->success(count($this->selectedOfficeTypes) . ' office types restored successfully! ♻️') : $this->error('Failed to restore selected office types.');
-            $this->selectedOfficeTypes = [];
+            $successful ? $this->success(count($this->selectedEmployeeWorkStatuses) . ' office types restored successfully! ♻️') : $this->error('Failed to restore selected office types.');
+            $this->selectedEmployeeWorkStatuses = [];
             $this->selectAll = false;
         } catch (\Exception $e) {
             \Log::error("Bulk Restore Error: " . $e->getMessage(), ['exception' => $e]);
@@ -313,34 +313,34 @@ new class extends Component
     }
 
     // Permanent delete operations matching campuses.blade.php
-    public function confirmPermanentDelete($officeTypeId)
+    public function confirmPermanentDelete($workStatusId)
     {
-        $this->officeTypeId = $officeTypeId;
+        $this->workStatusId = $workStatusId;
         $this->confirmingPermanentDeletion = true;
     }
 
-    public function permanentDelete(OfficeTypeService $officeTypeService)
+    public function permanentDelete(EmployeeWorkStatusService $employeeWorkStatusService)
     {
         try {
-            $successful = $officeTypeService->permanentlyDelete($this->officeTypeId);
+            $successful = $employeeWorkStatusService->permanentlyDelete($this->workStatusId);
             $this->confirmingPermanentDeletion = false;
-            $successful ? $this->warning('Office Type permanently deleted! 💥') : $this->error('Failed to permanently delete Office Type.');
-            $this->officeTypeId = null;
+            $successful ? $this->warning('Employee Work Status permanently deleted! 💥') : $this->error('Failed to permanently delete Employee Work Status.');
+            $this->workStatusId = null;
         } catch (\Exception $e) {
             \Log::error("Permanent Delete Error: " . $e->getMessage(), ['exception' => $e]);
             $this->confirmingPermanentDeletion = false; // Close modal even on error
-            $this->error('Failed to permanently delete Office Type.');
+            $this->error('Failed to permanently delete Employee Work Status.');
         }
     }
 
-    public function bulkPermanentDelete(OfficeTypeService $officeTypeService)
+    public function bulkPermanentDelete(EmployeeWorkStatusService $employeeWorkStatusService)
     {
         try {
-            $successful = $officeTypeService->bulkPermanentDelete($this->selectedOfficeTypes);
+            $successful = $employeeWorkStatusService->bulkPermanentDeleteEmployeeWorkStatuses($this->selectedEmployeeWorkStatuses);
             $this->confirmingBulkPermanentDeletion = false;
-            $successful ? $this->warning(count($this->selectedOfficeTypes) . ' office types permanently deleted! 💥') : $this->error('Failed to permanently delete selected office types');
+            $successful ? $this->warning(count($this->selectedEmployeeWorkStatuses) . ' office types permanently deleted! 💥') : $this->error('Failed to permanently delete selected office types');
            
-            $this->selectedOfficeTypes = [];
+            $this->selectedEmployeeWorkStatuses = [];
             $this->selectAll = false;
         } catch (\Exception $e) {
             \Log::error("Bulk Permanent Delete Error: " . $e->getMessage(), ['exception' => $e]);
@@ -350,7 +350,7 @@ new class extends Component
     }
 
     // Fetch office types with applied filters matching campuses.blade.php structure
-    private function getOfficeTypes(OfficeTypeService $officeTypeService)
+    private function getEmployeeWorkStatuses(EmployeeWorkStatusService $employeeWorkStatusService)
     {
         $filteringSorting = [
             'with_trashed' => $this->showDeletedRecords,
@@ -362,19 +362,18 @@ new class extends Component
             'per_page' => $this->perPage
         ];
 
-        return $officeTypeService->getPaginatedOfficeTypes($filteringSorting);
+        return $employeeWorkStatusService->getPaginatedEmployeeWorkStatuses($filteringSorting);
     }
 
     public function render(): mixed
     {
-        $officeTypes = $this->getOfficeTypes(new OfficeTypeService);
-        // $officeTypes = $officeTypesQuery->paginate($this->perPage);
+        $employeeWorkStatuses = $this->getEmployeeWorkStatuses(new EmployeeWorkStatusService);
 
-        $currentPageIds = $officeTypes->pluck('id')->map(fn($id) => (string) $id)->toArray();
-        $this->selectAll = !empty($currentPageIds) && empty(array_diff($currentPageIds, $this->selectedOfficeTypes));
+        $currentPageIds = $employeeWorkStatuses->pluck('id')->map(fn($id) => (string) $id)->toArray();
+        $this->selectAll = !empty($currentPageIds) && empty(array_diff($currentPageIds, $this->selectedEmployeeWorkStatuses));
 
-        return view('livewire.office-types', [
-            'officeTypes' => $officeTypes,
+        return view('livewire.employee-work-statuses', [
+            'employeeWorkStatuses' => $employeeWorkStatuses,
             'headers' => $this->headers 
         ]);
     }
@@ -387,14 +386,15 @@ new class extends Component
     <x-header 
         class="px-4 pt-4 !mb-2"
         title-class="text-2xl font-bold text-gray-800 dark:text-white"
-        title="Office Type Management" 
-        icon="o-bolt" 
-        icon-classes="bg-warning rounded-full p-1 w-6 h-6" 
-        subtitle="Total Office Types: {{ $officeTypes->total() }} {{ $showDeletedRecords ? 'including deleted' : '' }}" >
+        title="Employee Work Status Management" 
+        icon="o-briefcase" 
+        icon-classes="bg-warning rounded-full p-1 w-8 h-8" 
+        subtitle="Total Employee Work Statuses: {{ $employeeWorkStatuses->total() }} {{ $showDeletedRecords ? 'including deleted' : '' }}" >
 
         <x-slot:middle class="!justify-end">
+        
         <x-input 
-            placeholder="Search Office Types..." 
+            placeholder="Search Employee Work Statuses..." 
             wire:model.live.debounce="search" 
             icon="o-magnifying-glass" 
             @keydown.enter="$wire.drawer = false"
@@ -407,8 +407,8 @@ new class extends Component
                 wire:click="openModal(null)"  
                 class="btn btn-primary btn-sm flex items-center justify-center"
                 spinner 
-                tooltip-left="Add Office Type" 
-                label="Add Office Type"
+                tooltip-left="Add Employee Work Status" 
+                label="Add Employee Work Status"
             />
         </x-slot:actions>
     </x-header>
@@ -427,7 +427,7 @@ new class extends Component
             </div>
         </div>
 
-        @if(count($selectedOfficeTypes))
+        @if(count($selectedEmployeeWorkStatuses))
             <div class="flex items-center space-x-2">
                 <x-select
                     placeholder="Perform a bulk action"
@@ -445,7 +445,7 @@ new class extends Component
                 />
 
                 <span class="text-sm text-gray-500 dark:text-gray-400">
-                    {{ count($selectedOfficeTypes) }} selected
+                    {{ count($selectedEmployeeWorkStatuses) }} selected
                 </span>
             </div>
         @endif
@@ -483,33 +483,33 @@ new class extends Component
                 </tr>
             </thead>
             <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-                @forelse($officeTypes as $officeType)
-                    <tr wire:key="office-type-{{ $officeType->id }}" class="{{ $officeType->deleted_at ? 'bg-red-50 dark:bg-red-900/10' : '' }} {{ !$officeType->is_active ? 'bg-gray-50 dark:bg-gray-800/50' : '' }} hover:bg-gray-50 dark:hover:bg-gray-800/70 transition-colors">
+                @forelse($employeeWorkStatuses as $employeeWorkStatus)
+                    <tr wire:key="employee-work-status-{{ $employeeWorkStatus->id }}" class="{{ $employeeWorkStatus->deleted_at ? 'bg-red-50 dark:bg-red-900/10' : '' }} {{ !$employeeWorkStatus->is_active ? 'bg-gray-50 dark:bg-gray-800/50' : '' }} hover:bg-gray-50 dark:hover:bg-gray-800/70 transition-colors">
                         {{-- Checkbox Cell --}}
                         <td class="p-4 w-8">
-                            <x-checkbox wire:model.live="selectedOfficeTypes" value="{{ (string)$officeType->id }}" class="checkbox-sm checkbox-primary" />
+                            <x-checkbox wire:model.live="selectedEmployeeWorkStatuses" value="{{ (string)$employeeWorkStatus->id }}" class="checkbox-sm checkbox-primary" />
                         </td>
                         {{-- Data Cells --}}
                         <td class="px-4 py-3 whitespace-nowrap">
                             <div class="text-sm font-medium text-gray-900 dark:text-white">
-                                {{ $officeType->name }}
+                                {{ $employeeWorkStatus->name }}
                             </div>
                         </td>
                         <td class="px-4 py-3 whitespace-nowrap">
                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                                {{ $officeType->code }}
+                                {{ $employeeWorkStatus->code }}
                             </span>
                         </td>
                         <td class="px-4 py-3">
-                            <div class="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs" title="{{ $officeType->description }}">
-                                {{ Str::limit($officeType->description, 50) ?: '-' }}
+                            <div class="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs" title="{{ $employeeWorkStatus->description }}">
+                                {{ Str::limit($employeeWorkStatus->description, 50) ?: '-' }}
                             </div>
                         </td>
                         <td class="px-4 py-3 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $officeType->is_active ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' }}">
-                                {{ $officeType->is_active ? 'Active' : 'Inactive' }}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $employeeWorkStatus->is_active ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' }}">
+                                {{ $employeeWorkStatus->is_active ? 'Active' : 'Inactive' }}
                             </span>
-                            @if($officeType->deleted_at)
+                            @if($employeeWorkStatus->deleted_at)
                                 <span class="ml-1 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
                                     Deleted
                                 </span>
@@ -519,50 +519,50 @@ new class extends Component
                         <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
                             <div class="flex justify-end items-center space-x-1">
                                 <!-- View button -->
-                                <x-button icon="o-eye" wire:click="openViewModal({{ $officeType->id }})"  
+                                <x-button icon="o-eye" wire:click="openViewModal({{ $employeeWorkStatus->id }})"  
                                     class="btn btn-ghost btn-xs h-6 w-6  text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
                                     spinner tooltip-left="View Details" 
                                 />
 
-                                @if(!$officeType->deleted_at)
+                                @if(!$employeeWorkStatus->deleted_at)
                                     <!-- Edit button -->
                                     <x-button 
                                         icon="o-pencil" 
-                                        wire:click="openModal({{ $officeType->id }})"  
+                                        wire:click="openModal({{ $employeeWorkStatus->id }})"  
                                         class="h-6 w-6  btn btn-ghost btn-xs text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
                                         spinner 
-                                        tooltip-left="Edit Office Type" 
+                                        tooltip-left="Edit Employee Work Status" 
                                     />
 
                                     <!-- Toggle active button -->
                                     <x-button 
-                                        icon="{{ $officeType->is_active ? 'o-x-circle' : 'o-check-circle' }}" 
-                                        wire:click="toggleActive({{ $officeType->id }})"  
-                                        class="h-6 w-6 btn btn-ghost btn-xs {{ $officeType->is_active ? 'text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300' : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300' }}"
+                                        icon="{{ $employeeWorkStatus->is_active ? 'o-x-circle' : 'o-check-circle' }}" 
+                                        wire:click="toggleActive({{ $employeeWorkStatus->id }})"  
+                                        class="h-6 w-6 btn btn-ghost btn-xs {{ $employeeWorkStatus->is_active ? 'text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300' : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300' }}"
                                         spinner 
-                                        tooltip-left="{{ $officeType->is_active ? 'Deactivate' : 'Activate' }} Office Type" 
+                                        tooltip-left="{{ $employeeWorkStatus->is_active ? 'Deactivate' : 'Activate' }} Employee Work Status" 
                                     />
                                     <!-- Delete button -->
                                     <x-button 
                                         icon="o-trash" 
-                                        wire:click="confirmDelete({{ $officeType->id }})"  
+                                        wire:click="confirmDelete({{ $employeeWorkStatus->id }})"  
                                         class="h-6 w-6 btn btn-ghost btn-xs text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                                         spinner 
-                                        tooltip-left="Delete Office Type" 
+                                        tooltip-left="Delete Employee Work Status" 
                                     />
                                 @else
                                     <!-- Restore button -->
                                     <x-button 
                                         icon="o-arrow-path" 
-                                        wire:click="confirmRestore({{ $officeType->id }})"  
+                                        wire:click="confirmRestore({{ $employeeWorkStatus->id }})"  
                                         class="h-6 w-6 btn btn-ghost btn-xs text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
                                         spinner 
-                                        tooltip-left="Restore Office Type" 
+                                        tooltip-left="Restore Employee Work Status" 
                                     />
                                     <!-- Permanent Delete button -->
                                     <x-button 
                                         icon="o-no-symbol" 
-                                        wire:click="confirmPermanentDelete({{ $officeType->id }})"  
+                                        wire:click="confirmPermanentDelete({{ $employeeWorkStatus->id }})"  
                                         class="h-6 w-6 btn btn-ghost btn-xs text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                                         spinner 
                                         tooltip-left="Permanently Delete Type" 
@@ -599,11 +599,11 @@ new class extends Component
 
     <!-- Pagination -->
     <div class="bg-white dark:bg-gray-900 px-4 py-3 border-t border-gray-200 dark:border-gray-700 sm:px-6 rounded-b-lg">
-        {{ $officeTypes->links() }}
+        {{ $employeeWorkStatuses->links() }}
     </div>
     
-    <!-- Add/Edit Office Type Modal -->
-    <x-modal wire:model="showModal" :title="$officeTypeId ? 'Edit Office Type' : 'Add New Office Type'" box-class="max-w-xl" 
+    <!-- Add/Edit Employee Work Status Modal -->
+    <x-modal wire:model="showModal" :title="$workStatusId ? 'Edit Employee Work Status' : 'Add New Employee Work Status'" box-class="max-w-xl" 
         separator persistent class="mx-auto rounded-xl shadow-2xl mx-10">
         <x-form wire:submit.prevent="save">
             {{-- Mimic grid layout from campuses modal --}}
@@ -630,29 +630,29 @@ new class extends Component
             </button>
             <button wire:click="save" type="button" class="btn btn-primary" wire:loading.attr="disabled" wire:target="save">
                 <span wire:loading wire:target="save" class="loading loading-spinner loading-xs"></span>
-                {{ $officeTypeId ? 'Update Type' : 'Create Type' }}
+                {{ $workStatusId ? 'Update Type' : 'Create Type' }}
             </button>
         </x-slot:actions>
     </x-modal>
 
-    <!-- View Office Type Modal -->
-    <x-modal wire:model="showViewModal" title="View Office Type" separator box-class="max-w-2xl" class="fixed text-gray-500 flex items-center justify-center overflow-auto z-50 bg-black bg-opacity-40 left-0 right-0 top-0 bottom-0" >
-        @if($viewOfficeType)
+    <!-- View Employee Work Status Modal -->
+    <x-modal wire:model="showViewModal" title="View Employee Work Status" separator box-class="max-w-2xl" class="fixed text-gray-500 flex items-center justify-center overflow-auto z-50 bg-black bg-opacity-40 left-0 right-0 top-0 bottom-0" >
+        @if($viewEmployeeWorkStatus)
             <div class="p-4 space-y-6">
                 <div>
                     <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                        {{ $viewOfficeType->name }}
+                        {{ $viewEmployeeWorkStatus->name }}
                     </h3>
                     <div class="flex flex-wrap gap-2 items-center">
                         <span class="inline-flex items-center px-3 py-1 shadow rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                             <x-icon name="o-tag" class="h-3 w-3 mr-1" />
-                            {{ $viewOfficeType->code }}
+                            {{ $viewEmployeeWorkStatus->code }}
                         </span>
-                        <span class="inline-flex items-center px-3 py-1 shadow rounded-full text-xs font-semibold {{ $viewOfficeType->is_active ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' }}">
-                            <x-icon name="{{ $viewOfficeType->is_active ? 'o-check-circle' : 'o-x-circle' }}" class="h-3 w-3 mr-1" />
-                            {{ $viewOfficeType->is_active ? 'Active' : 'Inactive' }}
+                        <span class="inline-flex items-center px-3 py-1 shadow rounded-full text-xs font-semibold {{ $viewEmployeeWorkStatus->is_active ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' }}">
+                            <x-icon name="{{ $viewEmployeeWorkStatus->is_active ? 'o-check-circle' : 'o-x-circle' }}" class="h-3 w-3 mr-1" />
+                            {{ $viewEmployeeWorkStatus->is_active ? 'Active' : 'Inactive' }}
                         </span>
-                        @if($viewOfficeType->deleted_at)
+                        @if($viewEmployeeWorkStatus->deleted_at)
                             <span class="inline-flex items-center px-3 shadow py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
                                 <x-icon name="o-archive-box-x-mark" class="h-3 w-3 mr-1" />
                                 Deleted
@@ -666,7 +666,7 @@ new class extends Component
                     </div>
                     <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 shadow">
                         <p class="text-sm text-gray-900 dark:text-white leading-relaxed">
-                            {{ $viewOfficeType->description ?: 'No description provided.' }}
+                            {{ $viewEmployeeWorkStatus->description ?: 'No description provided.' }}
                         </p>
                     </div>
                 </div>
@@ -682,7 +682,7 @@ new class extends Component
                                 Created At
                             </div>
                             <p class="text-sm text-gray-900 dark:text-white">
-                                {{ $viewOfficeType->created_at ? $viewOfficeType->created_at->format('M d, Y h:i A') : '-' }}
+                                {{ $viewEmployeeWorkStatus->created_at ? $viewEmployeeWorkStatus->created_at->format('M d, Y h:i A') : '-' }}
                             </p>
                         </div>
 
@@ -692,18 +692,18 @@ new class extends Component
                                 Last Updated
                             </div>
                             <p class="text-sm text-gray-900 dark:text-white">
-                                {{ $viewOfficeType->updated_at ? $viewOfficeType->updated_at->format('M d, Y h:i A') : '-' }}
+                                {{ $viewEmployeeWorkStatus->updated_at ? $viewEmployeeWorkStatus->updated_at->format('M d, Y h:i A') : '-' }}
                             </p>
                         </div>
 
                         {{-- Deleted At (Conditional) --}}
-                        @if($viewOfficeType->deleted_at)
+                        @if($viewEmployeeWorkStatus->deleted_at)
                             <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-3 shadow"> 
                                 <div class="text-xs text-red-600 dark:text-red-400 uppercase">
                                     Deleted At
                                 </div>
                                 <p class="text-sm text-red-800 dark:text-red-300">
-                                    {{ $viewOfficeType->deleted_at->format('M d, Y h:i A') }}
+                                    {{ $viewEmployeeWorkStatus->deleted_at->format('M d, Y h:i A') }}
                                 </p>
                             </div>
                         @endif
@@ -750,11 +750,11 @@ new class extends Component
         <x-slot:actions>
             <div class="flex justify-end gap-3 w-full">
                 {{-- Edit button --}}
-                @if($viewOfficeType && !$viewOfficeType->deleted_at)
+                @if($viewEmployeeWorkStatus && !$viewEmployeeWorkStatus->deleted_at)
                     <x-button
                         label="Edit Type"
                         icon="o-pencil"
-                        wire:click="openModal({{ $viewOfficeType->id }})"
+                        wire:click="openModal({{ $viewEmployeeWorkStatus->id }})"
                         class="btn-primary"
                         spinner
                     />
@@ -770,7 +770,7 @@ new class extends Component
     </x-modal>
 
     <!-- Confirmation Modals (using MaryUI Modal, styled similarly) -->
-    <x-modal wire:model="confirmingDeletion" title="Delete Office Type" separator persistent class="">
+    <x-modal wire:model="confirmingDeletion" title="Delete Employee Work Status" separator persistent class="">
          <div class="p-4 flex items-start">
             <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
                 <x-icon name="o-exclamation-triangle" class="h-6 w-6 text-red-600" />
@@ -788,25 +788,25 @@ new class extends Component
     </x-modal>
 
     {{-- Bulk Delete Confirmation --}}
-    <x-modal wire:model="confirmingBulkDeletion" title="Bulk Delete Office Types" separator persistent class="">
+    <x-modal wire:model="confirmingBulkDeletion" title="Bulk Delete Employee Work Statuses" separator persistent class="">
          <div class="p-4 flex items-start">
              <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
                 <x-icon name="o-exclamation-triangle" class="h-6 w-6 text-red-600" />
             </div>
              <div class="mt-1 text-center sm:mt-0 sm:ml-4 sm:text-left">
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                    Are you sure you want to delete {{ count($selectedOfficeTypes) }} selected office types? This action will soft delete these records.
+                    Are you sure you want to delete {{ count($selectedEmployeeWorkStatuses) }} selected office types? This action will soft delete these records.
                 </p>
             </div>
         </div>
         <x-slot:actions>
             <x-button label="Cancel" wire:click="closeModal" class="btn-ghost" />
-            <x-button label="Delete {{ count($selectedOfficeTypes) }} Types" wire:click="bulkDelete" class="btn-error" wire:loading.attr="disabled" wire:target="bulkDelete" />
+            <x-button label="Delete {{ count($selectedEmployeeWorkStatuses) }} Types" wire:click="bulkDelete" class="btn-error" wire:loading.attr="disabled" wire:target="bulkDelete" />
         </x-slot:actions>
     </x-modal>
 
     {{-- Restore Confirmation --}}
-    <x-modal wire:model="confirmingRestore" title="Restore Office Type" separator persistent class="">
+    <x-modal wire:model="confirmingRestore" title="Restore Employee Work Status" separator persistent class="">
          <div class="p-4 flex items-start">
              <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
                 <x-icon name="o-arrow-path" class="h-6 w-6 text-green-600" />
@@ -824,25 +824,25 @@ new class extends Component
     </x-modal>
 
     {{-- Bulk Restore Confirmation --}}
-    <x-modal wire:model="confirmingBulkRestore" title="Bulk Restore Office Types" separator persistent class="">
+    <x-modal wire:model="confirmingBulkRestore" title="Bulk Restore Employee Work Statuses" separator persistent class="">
          <div class="p-4 flex items-start">
              <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
                 <x-icon name="o-arrow-path" class="h-6 w-6 text-green-600" />
             </div>
              <div class="mt-1 text-center sm:mt-0 sm:ml-4 sm:text-left">
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                    Are you sure you want to restore {{ count($selectedOfficeTypes) }} selected office types?
+                    Are you sure you want to restore {{ count($selectedEmployeeWorkStatuses) }} selected office types?
                 </p>
             </div>
         </div>
         <x-slot:actions>
             <x-button label="Cancel" wire:click="closeModal" class="btn-ghost" />
-            <x-button label="Restore {{ count($selectedOfficeTypes) }} Types" wire:click="bulkRestore" class="btn-success" wire:loading.attr="disabled" wire:target="bulkRestore" />
+            <x-button label="Restore {{ count($selectedEmployeeWorkStatuses) }} Types" wire:click="bulkRestore" class="btn-success" wire:loading.attr="disabled" wire:target="bulkRestore" />
         </x-slot:actions>
     </x-modal>
 
     {{-- Permanent Delete Confirmation --}}
-    <x-modal wire:model="confirmingPermanentDeletion" title="Permanently Delete Office Type" separator persistent class="">
+    <x-modal wire:model="confirmingPermanentDeletion" title="Permanently Delete Employee Work Status" separator persistent class="">
          <div class="p-4 flex items-start">
              <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
                 <x-icon name="o-no-symbol" class="h-6 w-6 text-red-600" />
@@ -860,20 +860,20 @@ new class extends Component
     </x-modal>
 
     {{-- Bulk Permanent Delete Confirmation --}}
-    <x-modal wire:model="confirmingBulkPermanentDeletion" title="Bulk Permanently Delete Office Types" separator persistent class="">
+    <x-modal wire:model="confirmingBulkPermanentDeletion" title="Bulk Permanently Delete Employee Work Statuses" separator persistent class="">
          <div class="p-4 flex items-start">
              <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
                 <x-icon name="o-no-symbol" class="h-6 w-6 text-red-600" />
             </div>
              <div class="mt-1 text-center sm:mt-0 sm:ml-4 sm:text-left">
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                    Are you sure you want to permanently delete {{ count($selectedOfficeTypes) }} selected office types? This action cannot be undone.
+                    Are you sure you want to permanently delete {{ count($selectedEmployeeWorkStatuses) }} selected office types? This action cannot be undone.
                 </p>
             </div>
         </div>
         <x-slot:actions>
             <x-button label="Cancel" wire:click="closeModal" class="btn-ghost" />
-            <x-button label="Permanently Delete {{ count($selectedOfficeTypes) }} Types" wire:click="bulkPermanentDelete" class="btn-error" wire:loading.attr="disabled" wire:target="bulkPermanentDelete" />
+            <x-button label="Permanently Delete {{ count($selectedEmployeeWorkStatuses) }} Types" wire:click="bulkPermanentDelete" class="btn-error" wire:loading.attr="disabled" wire:target="bulkPermanentDelete" />
         </x-slot:actions>
     </x-modal>
     

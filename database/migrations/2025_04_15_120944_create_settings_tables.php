@@ -22,7 +22,9 @@ return new class extends Migration
 
         Schema::create('job_natures', function (Blueprint $table) {
             $table->id();
-            $table->string('type')->unique();
+            $table->string('name')->unique();
+            $table->string('code', 6)->unique();
+            $table->string('description', 1000)->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->softDeletes();
@@ -31,7 +33,9 @@ return new class extends Migration
 
         Schema::create('payment_methods', function (Blueprint $table) {
             $table->id();
-            $table->string('type')->unique();
+            $table->string('name')->unique();
+            $table->string('code', 6)->unique();
+            $table->string('description', 1000)->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->softDeletes();
