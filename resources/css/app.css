@@ -14,6 +14,9 @@
 @tailwind utilities;
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Import Flatpickr CSS */
+@import 'flatpickr/dist/flatpickr.min.css';
+
 @import 'tailwindcss';
 @import '../../vendor/livewire/flux/dist/flux.css';
 

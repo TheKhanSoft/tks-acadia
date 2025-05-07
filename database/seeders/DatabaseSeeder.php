@@ -32,6 +32,8 @@ class DatabaseSeeder extends Seeder
             EmployeeTypeSeeder::class, // Added EmployeeTypeSeeder
             JobNatureSeeder::class,
             PaymentMethodSeeder::class,
+            EmployeeSeeder::class,
+            EmployeeOfficeSeeder::class, // Added EmployeeOfficeSeeder
 
             // // Department and subjects
             // DepartmentSeeder::class,

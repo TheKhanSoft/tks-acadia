@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\EmployeeOffice;
 
 class Employee extends Model
 {
@@ -13,13 +14,12 @@ class Employee extends Model
     protected $fillable = [
         'employee_id', 'first_name', 'last_name', 'email', 'phone', 'gender', 'nic_no',
         'date_of_birth', 'employee_type_id', 'appointment_date', 'termination_date',
-        'postal_address', 'permanent_address',
-        'qualification', 'specialization', 'photo_path', 'bio',
-        'employee_work_status_id', 'is_active'
+        'postal_address', 'permanent_address', 'qualification', 'specialization', 'photo_path', 'bio',
+        'employee_work_status_id',
+        'job_nature_id' // Added job_nature_id
     ];
     
     protected $casts = [
-        'is_active' => 'boolean',
         'date_of_birth' => 'date',
         'appointment_date' => 'date',
         'termination_date' => 'date',
@@ -34,20 +34,26 @@ class Employee extends Model
     {
         return $this->belongsTo(EmployeeWorkStatus::class);
     }
+
+    public function jobNature()
+    {
+        return $this->belongsTo(JobNature::class);
+    }
     
     public function offices()
     {
         return $this->belongsToMany(Office::class)
-            ->withPivot('role', 'assignment_date', 'end_date', 'is_primary_office', 'is_active')
+            ->using(EmployeeOffice::class)
+            ->withPivot('role', 'start_date', 'end_date', 'is_primary_office', 'is_active')
             ->withTimestamps();
     }
     
     public function primaryOffice()
     {
         return $this->belongsToMany(Office::class)
-            ->withPivot('role', 'assignment_date', 'end_date', 'is_primary_office', 'is_active')
-            ->wherePivot('is_primary_office', true)
-            ->first();
+        ->using(EmployeeOffice::class) // Use class name
+        ->withPivot('role', 'start_date', 'end_date', 'is_primary_office', 'is_active')
+        ->wherePivot('is_primary_office', true); // Remove ->first()
     }
     
     public function headOfOffices()
@@ -65,22 +71,7 @@ class Employee extends Model
         return "{$this->first_name} {$this->last_name}";
     }
     
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
-    }
+    // Removed scopeFaculty
     
-    public function scopeFaculty($query)
-    {
-        return $query->whereHas('employeeType', function($q) {
-            $q->where('name', 'Faculty Member');
-        });
-    }
-    
-    public function scopeAdministrative($query)
-    {
-        return $query->whereHas('employeeType', function($q) {
-            $q->where('name', 'Administrative Staff');
-        });
-    }
+    // Removed scopeAdministrative
 }

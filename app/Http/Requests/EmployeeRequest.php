@@ -7,6 +7,7 @@ use Illuminate\Validation\Rule;
 use App\Models\Employee;
 use App\Models\EmployeeType;
 use App\Models\EmployeeWorkStatus;
+use App\Models\JobNature; // Added JobNature model
 
 class EmployeeRequest extends FormRequest
 {
@@ -78,10 +79,15 @@ class EmployeeRequest extends FormRequest
             'employee_work_status_id' => [
                 'required',
                 'integer',
-                Rule::exists(EmployeeWorkStatus::class, 'id'), // Ensure the status exists
-            ],
-            'is_active' => ['sometimes', 'boolean'], // Consistent with OfficeRequest
-        ];
+                 Rule::exists(EmployeeWorkStatus::class, 'id'), // Ensure the status exists
+             ],
+             'job_nature_id' => [ // Added job_nature_id validation
+                 'required',
+                 'integer',
+                 Rule::exists(JobNature::class, 'id'), // Ensure the job nature exists
+             ],
+             // 'is_active' => ['sometimes', 'boolean'], // Removed is_active validation
+         ];
     }
 
     /**
@@ -141,8 +147,11 @@ class EmployeeRequest extends FormRequest
             'employee_work_status_id.required' => 'You must select the employee\'s current work status.',
             'employee_work_status_id.exists' => 'The selected work status doesn\'t seem to exist.',
 
-            'is_active.boolean' => 'The active status must be either true or false (on or off).',
-        ];
+            'job_nature_id.required' => 'You must select the nature of the job.', // Added message
+            'job_nature_id.exists' => 'The selected job nature doesn\'t seem to exist.', // Added message
+
+            // 'is_active.boolean' => 'The active status must be either true or false (on or off).', // Removed is_active message
+         ];
     }
 
     /**
@@ -168,8 +177,9 @@ class EmployeeRequest extends FormRequest
             'specialization' => 'specialization',
             'photo_path' => 'photo path',
             'employee_work_status_id' => 'work status',
-            'is_active' => 'active status',
-        ];
+            'job_nature_id' => 'job nature', // Added attribute
+            // 'is_active' => 'active status', // Removed is_active attribute
+         ];
     }
 
     /**
@@ -184,8 +194,7 @@ class EmployeeRequest extends FormRequest
             // Example: Convert employee_id to uppercase if needed, similar to Office code
             // 'employee_id' => strtoupper($this->employee_id),
 
-            // Set default for is_active only if it's not an update and not already present
-            'is_active' => $this->route('employee') ? $this->is_active : ($this->is_active ?? true),
+            // Removed default setting for is_active
         ]);
     }
 }

@@ -41,7 +41,8 @@ return new class extends Migration
             $table->enum('gender',['Male', 'Female', 'Other'])->default('Male')->comment('Male, Female, Other => Shemale');
             $table->string('nic_no', 15)->nullable();
             $table->date('date_of_birth')->nullable();
-            $table->foreignId('employee_type_id')->constrained();
+            $table->foreignId('job_nature_id')->constrained('job_natures')->comment('Permanent, Contract, Fixed Pay etc.');
+            $table->foreignId('employee_type_id')->constrained()->comment('Staff, Faculty, Technical Staff etc.');
             $table->date('appointment_date')->nullable();
             $table->date('termination_date')->nullable();
             $table->string('postal_address')->nullable();
@@ -50,11 +51,11 @@ return new class extends Migration
             $table->string('specialization')->nullable()->comment('Latest Specialization field.');
             $table->string('photo_path')->nullable();
             $table->text('bio')->nullable();
-            $table->foreignId('employee_work_status_id')->constrained('employee_work_statuses');
-            $table->boolean('is_active')->default(true);
+            $table->foreignId('employee_work_status_id')->constrained('employee_work_statuses')->comment('Earned Leave, Terminated.');;
             $table->timestamps();
             $table->softDeletes();
         });
+
     }
 
     /**

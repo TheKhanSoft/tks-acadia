@@ -10,12 +10,14 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "barryvdh/laravel-dompdf": "^3.1",
         "laravel/framework": "^12.0",
         "laravel/scout": "^10.14",
         "laravel/tinker": "^2.10.1",
         "livewire/flux": "^2.1.1",
         "livewire/livewire": "^3.6",
         "livewire/volt": "^1.7",
+        "maatwebsite/excel": "^3.1",
         "robsontenorio/mary": "^2.2"
     },
     "require-dev": {

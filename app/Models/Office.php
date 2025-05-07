@@ -47,14 +47,16 @@ class Office extends Model
     public function employees()
     {
         return $this->belongsToMany(Employee::class)
-            ->withPivot('role', 'assignment_date', 'end_date', 'is_primary_office', 'is_active')
+             ->using(EmployeeOffice::class)
+            ->withPivot('role', 'start_date', 'end_date', 'is_primary_office', 'is_active')
             ->withTimestamps();
     }
     
     public function activeEmployees()
     {
         return $this->belongsToMany(Employee::class)
-            ->withPivot('role', 'assignment_date', 'end_date', 'is_primary_office', 'is_active')
+             ->using(EmployeeOffice::class)
+            ->withPivot('role', 'start_date', 'end_date', 'is_primary_office', 'is_active')
             ->wherePivot('is_active', true)
             ->where('employees.is_active', true)
             ->withTimestamps();
@@ -63,7 +65,8 @@ class Office extends Model
     public function facultyMembers()
     {
         return $this->belongsToMany(Employee::class)
-            ->withPivot('role', 'assignment_date', 'end_date', 'is_primary_office', 'is_active')
+            ->using(EmployeeOffice::class)
+            ->withPivot('role', 'start_date', 'end_date', 'is_primary_office', 'is_active')
             ->whereHas('employeeType', function($query) {
                 $query->where('name', 'Faculty Member');
             });
@@ -72,7 +75,8 @@ class Office extends Model
     public function staffMembers()
     {
         return $this->belongsToMany(Employee::class)
-            ->withPivot('role', 'assignment_date', 'end_date', 'is_primary_office', 'is_active')
+            ->using(EmployeeOffice::class)
+            ->withPivot('role', 'start_date', 'end_date', 'is_primary_office', 'is_active')
             ->whereHas('employeeType', function($query) {
                 $query->where('name', 'Staff Member');
             });
@@ -94,19 +98,34 @@ class Office extends Model
             ->withTimestamps();
     }
     
-    public function parentOffice()
-    {
-        return $this->belongsTo(Office::class, 'parent_office_id');
-    }
+    // public function parentOffice()
+    // {
+    //     return $this->belongsTo(Office::class, 'parent_office_id');
+    // }
     
-    public function childOffices()
-    {
-        return $this->hasMany(Office::class, 'parent_office_id');
-    }
-    
+    // public function childOffices()
+    // {
+    //     return $this->hasMany(Office::class, 'parent_office_id');
+    // }
+
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    public function scopeAdminOffices($query)
+    {
+        return $query->whereHas('officeType', function($q) {
+            $q->where('name', 'Section');
+        });
+    }
+
+    public function scopeSections($query)
+    {
+        return $query->whereHas('officeType', function($q) {
+            $q->where('name', 'Section');
+        });
     }
     
     public function scopeDepartments($query)

@@ -9,9 +9,18 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use App\Services\ExportImportService; // Import the new service
+use Symfony\Component\HttpFoundation\Response; // For return type hinting
 
 class EmployeeService
 {
+    protected ExportImportService $exportImportService;
+
+    public function __construct(ExportImportService $exportImportService)
+    {
+        $this->exportImportService = $exportImportService;
+    }
+
     /**
      * Get paginated and filtered employees.
      *
@@ -84,6 +93,9 @@ class EmployeeService
                   })
                   ->orWhereHas('offices', function (Builder $qo) use ($searchTerm) {
                       $qo->where('name', 'like', "%{$searchTerm}%");
+                  })
+                  ->orWhereHas('jobNature', function (Builder $qjn) use ($searchTerm) { // Added search by Job Nature name
+                      $qjn->where('name', 'like', "%{$searchTerm}%");
                   });
             });
         }
@@ -95,16 +107,16 @@ class EmployeeService
         // Filter by Employee Work Status ID
         $query->when(Arr::get($params, 'employee_work_status_id'), fn ($q, $id) => $q->where('employee_work_status_id', $id));
 
+        // Filter by Job Nature ID (Added)
+        $query->when(Arr::get($params, 'job_nature_id'), fn ($q, $id) => $q->where('job_nature_id', $id));
+
         // Filter by Gender
         $gender = Arr::get($params, 'gender');
         $query->when($gender && in_array($gender, ['Male', 'Female', 'Other']), function (Builder $q) use ($gender) { // Reverted to standard closure
             $q->where('gender', $gender);
         });
 
-        // Filter by active status (using scope)
-        $status = Arr::get($params, 'status');
-        $query->when($status === 'active', fn (Builder $q) => $q->active());
-        $query->when($status === 'inactive', fn (Builder $q) => $q->where('is_active', false)); // Explicit inactive check
+        // Removed Status Filter Logic
 
         // Filter by Appointment Date Range
         $query->when(Arr::get($params, 'appointment_date_start'), fn (Builder $q, $date) => $q->whereDate('appointment_date', '>=', $date));
@@ -149,9 +161,9 @@ class EmployeeService
         $allowedSortFields = [
             'employee_id', 'first_name', 'last_name', 'email', 'phone', 'gender', 'nic_no',
             'date_of_birth', 'appointment_date', 'termination_date', 'qualification', 'specialization',
-            'created_at', 'updated_at', 'is_active',
+            'created_at', 'updated_at',
             // Related fields
-            'employee_type_name', 'employee_work_status_name', 'primary_office_name' // Added primary_office_name
+            'employee_type_name', 'employee_work_status_name', 'primary_office_name', 'job_nature_name' // Added job_nature_name
         ];
 
         // Validate sort field
@@ -177,13 +189,17 @@ class EmployeeService
                   ->leftJoin('offices as primary_office', 'pivot_primary.office_id', '=', 'primary_office.id')
                   ->orderBy('primary_office.name', $sortDirection)
                   ->select('employees.*'); // Ensure we select employee columns
+        } elseif ($sortField === 'job_nature_name') { // Added sorting by job nature name
+            $query->leftJoin('job_natures', 'employees.job_nature_id', '=', 'job_natures.id')
+                  ->orderBy('job_natures.name', $sortDirection)
+                  ->select('employees.*'); // Ensure we select employee columns
         } else {
             // Handle direct model fields (ensure table name for clarity if joins are possible)
             $query->orderBy('employees.' . $sortField, $sortDirection);
         }
 
         // Add secondary sort for consistency if sorting by name fields
-        if (in_array($sortField, ['first_name', 'last_name', 'employee_type_name', 'employee_work_status_name', 'primary_office_name'])) {
+        if (in_array($sortField, ['first_name', 'last_name', 'employee_type_name', 'employee_work_status_name', 'primary_office_name', 'job_nature_name'])) { // Added job_nature_name
             $query->orderBy('employees.first_name', 'asc')->orderBy('employees.last_name', 'asc');
         }
 
@@ -246,52 +262,6 @@ class EmployeeService
     {
         // Consider moving data manipulation to a mutator in the Employee model
         return $employee->update($validatedData);
-    }
-
-    /**
-     * Toggle the active status of an employee.
-     *
-     * @param Employee $employee The employee model instance.
-     * @return bool True on success, false otherwise.
-     */
-    public function toggleActiveStatus(Employee $employee): bool
-    {
-        $employee->is_active = !$employee->is_active;
-        return $employee->save();
-    }
-
-    /**
-     * Bulk toggle the active status of multiple employees.
-     * Uses a single update query for better performance.
-     *
-     * @param Collection|array $employeeIds Collection or array of Employee IDs.
-     * @return array Counts of toggled statuses.
-     */
-    public function bulkToggleActiveStatus(Collection|array $employeeIds): array
-    {
-        $ids = $employeeIds instanceof Collection ? $employeeIds->all() : $employeeIds;
-        if (empty($ids)) return ['activatedCount' => 0, 'deactivatedCount' => 0];
-
-        // Separate IDs based on current status for accurate counting
-        $toActivate = Employee::whereIn('id', $ids)->where('is_active', false)->pluck('id');
-        $toDeactivate = Employee::whereIn('id', $ids)->where('is_active', true)->pluck('id');
-
-        $activatedCount = 0;
-        $deactivatedCount = 0;
-
-        DB::transaction(function () use ($toActivate, $toDeactivate, &$activatedCount, &$deactivatedCount) {
-            if ($toActivate->isNotEmpty()) {
-                $activatedCount = Employee::whereIn('id', $toActivate)->update(['is_active' => true]);
-            }
-            if ($toDeactivate->isNotEmpty()) {
-                $deactivatedCount = Employee::whereIn('id', $toDeactivate)->update(['is_active' => false]);
-            }
-        });
-
-        return [
-            'activatedCount' => $activatedCount,
-            'deactivatedCount' => $deactivatedCount,
-        ];
     }
 
     /**
@@ -384,48 +354,16 @@ class EmployeeService
     }
 
     /**
-     * Count the number of active employees. (Uses scope)
-     *
-     * @return int
-     */
-    public function countActiveEmployees(): int
-    {
-        return Employee::active()->count();
-    }
-
-    /**
-     * Count the number of active faculty members. (Uses scopes)
-     *
-     * @return int
-     */
-    public function countActiveFaculty(): int
-    {
-        return Employee::active()->faculty()->count();
-    }
-
-    /**
-     * Count the number of active administrative staff. (Uses scopes)
-     *
-     * @return int
-     */
-    public function countActiveAdministrativeStaff(): int
-    {
-        return Employee::active()->administrative()->count();
-    }
-
-    /**
      * Get a list of employees suitable for dropdowns (ID, full name, employee_id).
      *
-     * @param bool $activeOnly Include only active employees.
      * @param int|null $employeeTypeId Filter by a specific employee type.
      * @param array $with Relationships to eager load. (Added)
      * @return Collection
      */
-    public function getEmployeesForDropdown(bool $activeOnly = true, ?int $employeeTypeId = null, array $with = []): Collection
+    public function getEmployeesForDropdown(?int $employeeTypeId = null, array $with = []): Collection
     {
         $query = Employee::query();
 
-        if ($activeOnly) $query->active(); // Use scope
         if ($employeeTypeId) $query->where('employee_type_id', $employeeTypeId);
         if (!empty($with)) $query->with($with); // Added eager loading
 
@@ -433,13 +371,7 @@ class EmployeeService
         $query->orderBy('first_name')->orderBy('last_name');
 
         // Select necessary fields
-        return $query->select('id', 'first_name', 'last_name', 'employee_id')
-                     ->get()
-                     ->map(function ($employee) {
-                         // Add a full_name attribute for convenience (uses accessor)
-                         $employee->full_name = $employee->full_name;
-                         return $employee;
-                     });
+        return $query->select('id', 'first_name', 'last_name', 'employee_id')->get();
     }
 
     /**
@@ -504,15 +436,13 @@ class EmployeeService
      * Get employees belonging to a specific office.
      *
      * @param int $officeId
-     * @param bool $activeOnly Get only active employees in that office.
      * @param array $with Relationships to eager load for the employees. (Added)
      * @return Collection
      */
-    public function getEmployeesByOffice(int $officeId, bool $activeOnly = true, array $with = []): Collection
+    public function getEmployeesByOffice(int $officeId, array $with = []): Collection
     {
         $query = Employee::whereHas('offices', fn ($q) => $q->where('offices.id', $officeId));
 
-        if ($activeOnly) $query->active(); // Use scope for employee's status
         if (!empty($with)) $query->with($with); // Added eager loading
 
         return $query->orderBy('first_name')->orderBy('last_name')->get();
@@ -521,19 +451,16 @@ class EmployeeService
     /**
      * Get employees who are not assigned to any office. (Added)
      *
-     * @param bool $activeOnly Get only active employees.
      * @param array $with Relationships to eager load.
      * @return Collection
      */
-    public function getEmployeesWithoutOfficeAssignment(bool $activeOnly = true, array $with = []): Collection
+    public function getEmployeesWithoutOfficeAssignment(array $with = []): Collection
     {
         $query = Employee::doesntHave('offices');
-        if ($activeOnly) $query->active();
         if (!empty($with)) $query->with($with);
 
         return $query->orderBy('first_name')->orderBy('last_name')->get();
     }
-
 
     // --- Office Assignment Methods ---
 
@@ -677,8 +604,123 @@ class EmployeeService
         }
 
         return $office ? $office->pivot : null;
-}
+    }
 
-// Removed extra closing brace
+    // --- Query Building for Export ---
 
+    /**
+     * Get a query builder instance with filters and sorting applied, suitable for export.
+     * This method acts as a public interface to the protected filtering/sorting logic.
+     *
+     * @param array $filters Filters to apply (includes sorting, search, specific criteria).
+     * @return Builder
+     */
+    public function getFilteredQueryForExport(array $filters): Builder
+    {
+        $query = Employee::query();
+
+        // Apply necessary relations if specified in filters (e.g., for mapping in export)
+        if (!empty($filters['with']) && is_array($filters['with'])) {
+            $query->with($filters['with']);
+        }
+
+        // Apply filters
+        $this->applyFilters($query, $filters);
+
+        // Apply sorting
+        $this->applySorting($query, $filters);
+
+        return $query;
+    }
+
+    /**
+     * Export employee data based on filters and format.
+     *
+     * @param string $format The desired export format ('pdf', 'xlsx', 'csv').
+     * @param array $filters Filters to apply to the query (including sorting, search).
+     * @param array $selectedColumns Array of column definitions [{key: '...', label: '...'}, ...] in the desired order.
+     * @param string|null $title Optional title for the export document/sheet.
+     * @param string|null $subtitle Optional subtitle for the export document/sheet.
+     * @return Response Returns a download response for the requested format.
+     * @throws \InvalidArgumentException If the format is invalid or no columns selected.
+     */
+    public function exportEmployees(
+        string $format,
+        array $filters = [],
+        array $selectedColumns = [], // Added parameter for selected columns
+        ?string $title = 'Employee Report',
+        ?string $subtitle = null
+    ): Response {
+        if (empty($selectedColumns)) {
+            throw new \InvalidArgumentException("No columns selected for export.");
+        }
+
+        // Extract headings and map keys from the selected columns
+        $headings = Arr::pluck($selectedColumns, 'label');
+        $mapKeys = Arr::pluck($selectedColumns, 'key');
+
+        // Determine required relations based on map keys (e.g., 'employeeType.name' requires 'employeeType')
+        $requiredRelations = [];
+        foreach ($mapKeys as $key) {
+            if (str_contains($key, '.')) {
+                $relationName = explode('.', $key)[0];
+                // Handle potential nested relations if needed in the future, for now just first level
+                $requiredRelations[] = $relationName;
+            }
+        }
+        // Ensure primaryOffice relation is loaded correctly if needed
+        // The key 'primaryOffice.name' might need adjustment based on how primaryOffice is loaded/accessed
+        // Let's assume 'primaryOffice' is the correct relation name if 'primaryOffice.name' is requested.
+        if (in_array('primaryOffice.name', $mapKeys) && !in_array('primaryOffice', $requiredRelations)) {
+             $requiredRelations[] = 'primaryOffice';
+        }
+
+        // Merge required relations with any existing 'with' in filters
+        $filters['with'] = array_unique(array_merge($filters['with'] ?? [], $requiredRelations));
+
+        // Get the filtered data as a collection
+        // Ensure the query selects the base model columns explicitly if joins are used in sorting/filtering
+        // to avoid ambiguity, although getFilteredQueryForExport already does select('employees.*') in sorting.
+        $employees = $this->getFilteredQueryForExport($filters)->get();
+
+        // Generate filename
+        $filename = 'employees-' . date('YmdHis') . '.' . $format;
+
+        // Call the appropriate export method
+        switch (strtolower($format)) {
+            case 'pdf':
+                // Consider landscape for potentially wide employee data
+                // return $this->exportImportService->exportPdf('exports.pdf-layout',(array) $employees, $filename, 'landscape');
+              
+                return $this->exportImportService->exportGenericPdf(
+                    $employees,
+                    $headings,
+                    $mapKeys,
+                    $filename,
+                    $title,
+                    $subtitle,
+                    'landscape' // Set orientation to landscape
+                );
+            case 'xlsx':
+                return $this->exportImportService->exportExcel(
+                    $employees,
+                    $headings,
+                    $mapKeys,
+                    $filename,
+                    $title,
+                    $subtitle
+                );
+            case 'csv':
+                return $this->exportImportService->exportCsv(
+                    $employees,
+                    $headings,
+                    $mapKeys,
+                    $filename,
+                    $title,
+                    $subtitle
+                );
+            default:
+                throw new \InvalidArgumentException("Invalid export format requested: {$format}. Valid formats are pdf, xlsx, csv.");
+        }
+    }
 }

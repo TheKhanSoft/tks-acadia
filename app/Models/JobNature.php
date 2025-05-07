@@ -17,10 +17,10 @@ class JobNature extends Model
         'is_active' => 'boolean',
     ];
     
-    // public function offices()
-    // {
-    //     return $this->hasMany(Office::class);
-    // }
+    public function employees()
+    {
+        return $this->hasMany(Employee::class);
+    }
     
     public function scopeActive($query)
     {
