@@ -76,6 +76,7 @@ class ExportImportService
         $export = new GenericDataExport($data, $headings, $mapKeys, $title, $subtitle);
         return Excel::download($export, $filename, ExcelWriter::CSV);
     }
+
     /**
      * Export data to PDF using a generic view.
      *
@@ -96,79 +97,47 @@ class ExportImportService
         ?string $title = null,
         ?string $subtitle = null,
         string $orientation = 'portrait'
-    ): \Symfony\Component\HttpFoundation\Response {
-        // Utility function to sanitize strings for UTF-8 encoding
-        $sanitizeString = function (string $value): string {
-            if (empty($value)) {
+    ) {
+        $sanitizeString = function ($value) {
+            if (!is_string($value) || empty($value)) {
                 return $value;
             }
-
-            try {
-                // First try iconv for sanitization
-                if (function_exists('iconv')) {
-                    $cleanedValue = iconv('UTF-8', 'UTF-8//IGNORE', $value);
-                    if ($cleanedValue !== false) {
-                        return $cleanedValue;
-                    }
-                }
-
-                // Fallback to mb_convert_encoding if iconv fails
-                return mb_convert_encoding($value, 'UTF-8', 'UTF-8');
-            } catch (\Exception $e) {
-                // Log the error and return the original value
-                \Log::error("String sanitization failed: {$e->getMessage()}", ['value' => $value]);
-                return $value;
+            
+            // Ensure the iconv extension is enabled in your PHP environment.
+            if (function_exists('iconv')) {
+                $cleanedValue = iconv('UTF-8', 'UTF-8//IGNORE', $value);
+                // iconv returns false on failure
+                return $cleanedValue !== false ? $cleanedValue : $value; // Fallback to original if iconv fails
             }
+            // Fallback to mb_convert_encoding if iconv is not available or preferred
+            return mb_convert_encoding($value, 'UTF-8', 'UTF-8');
         };
 
-        // Sanitize headings and titles
-        $sanitizedHeadings = array_map($sanitizeString, $headings);
-        $sanitizedTitle = $title !== null ? $sanitizeString($title) : null;
-        $sanitizedSubtitle = $subtitle !== null ? $sanitizeString($subtitle) : null;
-
-        // Sanitize data collection
-        $sanitizedData = $data->map(function ($item) use ($mapKeys, $sanitizeString) {
-            if (!is_object($item) && !is_array($item)) {
-                return $item; // Skip invalid items
-            }
-
-            // Apply sanitization to each key in $mapKeys
-            foreach ($mapKeys as $key) {
-                $originalValue = data_get($item, $key);
-
-                // Only sanitize if the value is a string
-                if (is_string($originalValue)) {
-                    data_set($item, $key, $sanitizeString($originalValue));
-                }
-            }
-
-            return $item;
-        });
-
-        // Prepare view data
+        $data1 = $data;
         $viewData = [
-            'title' => $sanitizedTitle,
-            'subtitle' => $sanitizedSubtitle,
-            'headings' => $sanitizedHeadings,
+            'title' => $sanitizeString($title),
+            'subtitle' => $sanitizeString($subtitle),
+            'headings' => array_map($sanitizeString, $headings),
             'mapKeys' => $mapKeys,
-            'data' => $sanitizedData,
+            // Clean string data for each item in the collection
+            'data' => $data->map(function ($item) use ($mapKeys, $sanitizeString) {
+                // Ensure $item is an object or array before iterating
+                if (is_object($item) || is_array($item)) {
+                    foreach ($mapKeys as $key) {
+                        $originalValue = data_get($item, $key);
+                        if (is_string($originalValue)) {
+                            data_set($item, $key, $sanitizeString($originalValue));
+                        }
+                    }
+                }
+                return $item;
+            }),
         ];
 
-        try {
-            // Generate PDF with HTML5 parser enabled
-            $pdf = Pdf::loadView('exports.pdf-layout', $viewData)
-                ->setPaper('a4', $orientation);
-
-            return $pdf->download($filename);
-        } catch (\Exception $e) {
-            // Log the error and return an appropriate response
-            \Log::error("PDF generation failed: {$e->getMessage()}", ['filename' => $filename]);
-
-            return response()->json([
-                'message' => 'Failed to generate PDF.',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        // Enable the HTML5 parser and additional options
+        $pdf = Pdf::loadView($this->pdfView, $viewData)
+        ->setPaper('a4', $orientation);
+        return $pdf->download($filename);
     }
 
     /**

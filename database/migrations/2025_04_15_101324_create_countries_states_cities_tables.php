@@ -41,26 +41,31 @@ return new class extends Migration
 
         Schema::create('states', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 255)->unique();
-            $table->string('state_code', 5)->unique();
-            $table->string('type', 191)->unique();
+            $table->string('name', 255);
+            $table->string('state_code', 5);
+            $table->string('type', 191)->nullable();
             $table->foreignId('country_id')->constrained()->onDelete('cascade');
-            $table->string('country_code', 5)->unique();
+            $table->string('country_code', 5);
             $table->decimal('latitude',10,8);
             $table->decimal('longitude',11,8);
             $table->timestamps();
             $table->softDeletes();
+
+            $table->unique(['name', 'country_id']);
+
         });
 
         Schema::create('cities', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();
+            $table->string('name');
             $table->foreignId('state_id')->constrained()->onDelete('cascade');
             $table->decimal('latitude',10,8);
             $table->decimal('longitude',11,8);
             $table->string('wikiDataId', 255)->nullable()->comment('Rapid API GeoDB Cities');
             $table->timestamps();
             $table->softDeletes();
+
+            $table->unique(['name', 'state_id']);
         });
     }
 
