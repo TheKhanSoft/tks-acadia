@@ -87,7 +87,7 @@ class CountryRequest extends FormRequest
                 'max:50',
             ],
             'region_id' => [
-                'required',
+                'nullable',
                 'integer',
             ],
             'subregion' => [
@@ -96,7 +96,7 @@ class CountryRequest extends FormRequest
                 'max:20',
             ],
             'subregion_id' => [
-                'required',
+                'nullable',
                 'integer',
             ],
             'nationality' => [
@@ -177,13 +177,11 @@ class CountryRequest extends FormRequest
             'region.required' => '🗺️ The region is required. Please select one.',
             'region.max' => '🗺️ The region name is too long. Maximum :max characters allowed.',
 
-            'region_id.required' => '🆔 The region ID is required. Please provide it.',
             'region_id.integer' => '🆔 The region ID must be an integer.',
 
             'subregion.required' => '🗺️ The subregion is required. Please select one.',
             'subregion.max' => '🗺️ The subregion name is too long. Maximum :max characters allowed.',
 
-            'subregion_id.required' => '🆔 The subregion ID is required. Please provide it.',
             'subregion_id.integer' => '🆔 The subregion ID must be an integer.',
 
             'nationality.required' => '🧑‍🤝‍🧑 The nationality is required. Please enter it.',
@@ -236,5 +234,17 @@ class CountryRequest extends FormRequest
             'emoji' => 'Emoji',
             'emojiU' => 'EmojiU',
         ];
+    }
+
+    protected function prepareForValidation()
+    {
+        // Consistent with OfficeRequest
+        $this->merge([
+            'iso3' => strtoupper($this->iso3),
+            'iso2' => strtoupper($this->iso2),
+            'numeric_code' => (int)$this->numeric_code,
+            'phonecode' => (int)$this->phonecode,
+            'region_id' => (int)$this->region_id,
+        ]);
     }
 }

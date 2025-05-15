@@ -234,6 +234,7 @@ new class extends Component {
             if ($this->countryId) {
                 $country = $countryService->getCountry($this->countryId);
                 if ($country) {
+                    dd("Update", $country, $validatedData);
                     $countryService->updateCountry($country, $validatedData);
                     $this->success('Fantastic! Country details updated successfully. 🌍');
                 } else {
@@ -242,6 +243,7 @@ new class extends Component {
                     return;
                 }
             } else {
+                dd("Add", $validatedData);
                 $countryService->createCountry($validatedData);
                 $this->success('Hooray! A new country has been added to the list. ✨');
             }
