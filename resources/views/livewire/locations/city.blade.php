@@ -698,8 +698,13 @@ new class extends Component {
                                     <x-button wire:click="resetFilters" class="mt-3 btn btn-secondary btn-sm"
                                         label="Clear Filters" />
                                 @else
-                                    <x-button wire:click="openModal" class="mt-3 btn btn-primary btn-sm"
-                                        label="Add Your First City" />
+                                    <x-button 
+                                        wire:click="openModal(null)"  
+                                        class="mt-3 btn btn-primary btn-sm"
+                                        spinner 
+                                        tooltip-left="Add Your First City" 
+                                        label="Add Your First City"
+                                    />
                                 @endif
                             </div>
                         </td>
@@ -1034,7 +1039,7 @@ new class extends Component {
     </x-drawer>
 
     {{-- No Export Modal for Cities yet --}}
-    <x-modal wire:model="showGenericExportModal" title="Configure Export" separator persistent box-class="max-w-3xl"
+    <x-modal wire:model="showGenericExportModal" title="Configure Export" separator box-class="max-w-3xl"
         class="backdrop-blur-sm">
         <div x-data="{
             availableColumns: [], // Define available columns for City export
@@ -1158,6 +1163,6 @@ new class extends Component {
 <x-slot:actions>
     <x-button label="Cancel" @click="$wire.showGenericExportModal = false" class="btn-ghost" />
 </x-slot:actions>
-</x-modal> --}}
+</x-modal>
 
 </div>

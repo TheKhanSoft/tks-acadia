@@ -37,10 +37,10 @@ class Faculty extends Model
         return $this->belongsTo(Campus::class);
     }
 
-    public function faculty()
-    {
-        return $this->belongsTo(Faculty::class);
-    }
+    // public function faculty() // Removed incorrect self-referencing relationship
+    // {
+    //     return $this->belongsTo(Faculty::class);
+    // }
 
     
     public function employees()
@@ -55,7 +55,7 @@ class Faculty extends Model
         return $this->belongsToMany(Employee::class)
             ->withPivot('role', 'assignment_date', 'end_date', 'is_primary_office', 'is_active')
             ->wherePivot('is_active', true)
-            ->where('employees.is_active', true)
+            // ->where('employees.is_active', true) // This column does not exist on employees table
             ->withTimestamps();
     }
     

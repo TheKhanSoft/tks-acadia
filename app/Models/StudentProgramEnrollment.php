@@ -13,11 +13,11 @@ class StudentProgramEnrollment extends Model
     protected $fillable = [
         'student_id',
         'department_program_id', // Links to program offered by a department/faculty
-        'session_id',
+        'academic_session_id',
         'enrollment_date',
         'expected_completion_date',
         'actual_completion_date',
-        'grades',
+        'grades', // Storing overall grade or GPA for the enrollment
         'remarks',
         'enrollment_status_id',
     ];
@@ -26,7 +26,7 @@ class StudentProgramEnrollment extends Model
         'enrollment_date' => 'date',
         'expected_completion_date' => 'date',
         'actual_completion_date' => 'date',
-        'grades' => 'decimal:2',
+        // 'grades' => 'decimal:2', // Keep as string or handle specific type if needed, e.g. JSON for detailed grades
     ];
 
     /**
@@ -46,18 +46,32 @@ class StudentProgramEnrollment extends Model
     }
 
     /**
-     * Get the session that the enrollment belongs to.
+     * Accessor to get the Program model directly.
+     * This allows $enrollment->program->name
      */
-    public function session()
+    public function getProgramAttribute()
     {
-        return $this->belongsTo(Session::class);
+        // Ensure departmentProgram and its program relation are loaded or exist
+        if ($this->departmentProgram && $this->departmentProgram->program) {
+            return $this->departmentProgram->program;
+        }
+        return null; // Or handle as appropriate if relations might not exist
+    }
+
+    /**
+     * Get the academic session that the enrollment belongs to.
+     */
+    public function academicSession() // Renamed from session() to avoid conflict if a 'session' field/method is needed
+    {
+        return $this->belongsTo(AcademicSession::class, 'academic_session_id');
     }
 
     /**
      * Get the enrollment status for the enrollment.
+     * Renamed from enrollmentStatus() to status() for brevity, e.g., $enrollment->status->name
      */
-    public function enrollmentStatus()
+    public function status()
     {
-        return $this->belongsTo(EnrollmentStatus::class);
+        return $this->belongsTo(EnrollmentStatus::class, 'enrollment_status_id');
     }
 }

@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Enums\Gender; // Import the Gender enum
 use App\Models\City; // Import the City model
+use App\Models\StudentStatus; // Import StudentStatus
+use App\Models\StudentProgramEnrollment; // Import StudentProgramEnrollment
 
 class Student extends Model
 {
@@ -19,12 +21,12 @@ class Student extends Model
         'email',
         'phone',
         'phone_alternative',
-        'gender',           // Uses App\Enums\Gender
-        'nic_no',           // National Identity Card number
+        'gender',          
+        'nic_no',          
         'date_of_birth',
         'postal_address',
         'permanent_address',
-        'city_id',          // Foreign key to cities table
+        'city_id',          
         'photo_path',
         'bio',
         'student_status_id',
@@ -58,13 +60,21 @@ class Student extends Model
     {
         return $this->hasMany(StudentProgramEnrollment::class);
     }
-    // You might want to add helper methods to get current/active program enrollments,
-    // or specific program details through the enrollments.
-    // For example:
-    // public function currentProgramEnrollment()
-    // {
-    //     return $this->hasOne(StudentProgramEnrollment::class)->latestOfMany('enrollment_date'); // Or based on status
-    // }
+
+    /**
+     * Get the student's current program enrollment.
+     * This could be the latest one by date, or one marked as 'active'.
+     * For simplicity, using latest by enrollment_date.
+     * Adjust logic if 'current' is defined differently (e.g., by an 'is_current' flag or specific status).
+     */
+    public function currentEnrolment()
+    {
+        // Assuming 'enrollment_date' exists on StudentProgramEnrollment table
+        // and the latest enrollment by this date is considered "current".
+        // If there's a specific status or flag for "current", filter by that instead/additionally.
+        // For example: ->where('enrollment_status_id', EnrollmentStatus::ACTIVE_ID)->latestOfMany('enrollment_date')
+        return $this->hasOne(StudentProgramEnrollment::class)->latestOfMany('enrollment_date');
+    }
 
     /**
      * Get the student's full name.
@@ -73,6 +83,6 @@ class Student extends Model
      */
     public function getFullNameAttribute()
     {
-        return "{$this->first_name} {$this->last_name}";
+        return trim("{$this->first_name} {$this->last_name}");
     }
 }

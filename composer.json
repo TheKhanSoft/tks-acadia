@@ -18,7 +18,8 @@
         "livewire/livewire": "^3.6",
         "livewire/volt": "^1.7",
         "maatwebsite/excel": "^3.1",
-        "robsontenorio/mary": "^2.2"
+        "robsontenorio/mary": "^2.2",
+        "spatie/laravel-permission": "^6.20"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.15",

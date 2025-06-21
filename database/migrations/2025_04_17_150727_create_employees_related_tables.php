@@ -56,6 +56,36 @@ return new class extends Migration
             $table->softDeletes();
         });
 
+        Schema::create('employee_office', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('employee_id')->constrained()->onDelete('cascade');
+            $table->foreignId('office_id')->constrained()->onDelete('cascade'); // Constraint should work now as offices table exists
+            $table->string('role')->nullable(); // e.g., Head, Member, Coordinator
+            $table->date('start_date');
+            $table->date('end_date')->nullable();
+            $table->boolean('is_primary_office')->default(false);
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+            $table->softDeletes();
+
+            // Ensure an employee can only be assigned to an office once at any given time (unless soft deleted)
+            $table->unique(['employee_id', 'office_id', 'role', 'start_date']);
+
+            // $table->foreignId('head_id')->constrained('employees')->nullable();
+        });
+
+      
+
+        // Schema::create('head_office', function (Blueprint $table) {
+        //     $table->id();
+        //     $table->string('office_id'); // Department, Section, Administrative Office, Constituent College, Hostel, etc.
+        //     $table->foreignId('head_id')->nullable()->constrained('employees');
+        //     $table->date('start_date')->nullable();
+        //     $table->date('end_date')->nullable();
+        //     $table->boolean('is_active')->default(true);
+        //     $table->timestamps();
+        //     $table->softDeletes();
+        // });
     }
 
     /**
@@ -63,6 +93,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('head_office');
+        Schema::dropIfExists('employee_office');
         Schema::dropIfExists('employees');
         Schema::dropIfExists('employee_types');
         Schema::dropIfExists('employee_work_statuses');

@@ -668,8 +668,13 @@ new class extends Component {
                                     <x-button wire:click="$set('search', '')" class="mt-3 btn btn-secondary btn-sm"
                                         label="Clear Search" />
                                 @else
-                                    <x-button wire:click="openModal" class="mt-3 btn btn-primary btn-sm"
-                                        label="Add Your First Country" />
+                                    <x-button 
+                                        wire:click="openModal(null)"  
+                                        class="mt-3 btn btn-primary btn-sm"
+                                        spinner 
+                                        tooltip-left="Add Your First Country" 
+                                        label="Add Your First Country"
+                                    />
                                 @endif
                             </div>
                         </td>

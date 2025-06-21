@@ -81,8 +81,8 @@ class OfficeSeeder extends Seeder
             ['name' => 'Department of Botany', 'short_name' => 'Botany','code_base' => 'BOT', 'description' => 'Timergara campus branch focused on botanical sciences and plant biology research.', 'faculty_id' => 3, 'campus_suffix' => 'T', 'email_prefix' => 'botany.timergara'],
             ['name' => 'Department of Chemistry', 'short_name' => 'Chemistry','code_base' => 'CHEM', 'description' => 'Explores the composition, structure, properties, and change of matter through chemical processes and experiments.', 'faculty_id' => 3, 'campus_suffix' => null, 'email_prefix' => 'chemistry'],
             ['name' => 'Department of Computer Science', 'short_name' => 'Computer Science','code_base' => 'CS', 'description' => 'Focuses on the study of computers and computational systems, including programming languages, algorithms, and software development.', 'faculty_id' => 4, 'campus_suffix' => null, 'email_prefix' => 'computerscience'],
-            ['name' => 'Department of Computer Science', 'short_name' => 'Computer Science','code_base' => 'CS', 'description' => 'Pabbi campus branch offering computer science education and research opportunities for local students.', 'faculty_id' => 4, 'campus_suffix' => 'P', 'email_prefix' => 'cs.pabbi'],
-            ['name' => 'Department of Computer Science', 'short_name' => 'Computer Science','code_base' => 'CS', 'description' => 'Timergara campus division providing computer science education and IT skills development.', 'faculty_id' => 4, 'campus_suffix' => 'T', 'email_prefix' => 'cs.timergara'],
+            ['name' => 'Department of Computer Science', 'short_name' => 'Computer Science Pabbi','code_base' => 'CS-P', 'description' => 'Pabbi campus branch offering computer science education and research opportunities for local students.', 'faculty_id' => 4, 'campus_suffix' => 'P', 'email_prefix' => 'cs.pabbi'],
+            ['name' => 'Department of Computer Science', 'short_name' => 'Computer Science Timergara','code_base' => 'CS-T', 'description' => 'Timergara campus division providing computer science education and IT skills development.', 'faculty_id' => 4, 'campus_suffix' => 'T', 'email_prefix' => 'cs.timergara'],
             ['name' => 'Department of Digital Marketing (IBL)', 'short_name' => 'Digital Marketing (IBL)','code_base' => 'DGMKT', 'description' => 'Specializes in digital marketing strategies, social media management, and online business promotion techniques.', 'faculty_id' => 2, 'campus_suffix' => null, 'email_prefix' => 'marketing'],
             ['name' => 'Department of Economics', 'short_name' => 'Economics','code_base' => 'ECO', 'description' => 'Studies economic systems, policies, and their impact on society, businesses, and government.', 'faculty_id' => 2, 'campus_suffix' => null, 'email_prefix' => 'economics'],
             ['name' => 'Department of Economics', 'short_name' => 'Economics','code_base' => 'ECO', 'description' => 'Timergara campus division focused on economic theory, development economics, and regional economic issues.', 'faculty_id' => 2, 'campus_suffix' => 'T', 'email_prefix' => 'economics.tmg'],
@@ -92,8 +92,8 @@ class OfficeSeeder extends Seeder
             ['name' => 'Department of Environmental Science', 'short_name' => 'Environmental Science','code_base' => 'ENVSCI', 'description' => 'Studies environmental systems, conservation, pollution control, and sustainable resource management.', 'faculty_id' => 3, 'campus_suffix' => null, 'email_prefix' => 'environmental'],
             ['name' => 'Department of Food Science & Technology', 'short_name' => 'Food Science & Technology','code_base' => 'FST', 'description' => 'Focuses on food processing, preservation, safety, and development of new food products and technologies.', 'faculty_id' => 3, 'campus_suffix' => null, 'email_prefix' => 'fst'],
             ['name' => 'Department of Geology', 'short_name' => 'Geology','code_base' => 'GEO', 'description' => 'Studies the Earth\'s physical structure, substances, history, and the processes that shape the landscape.', 'faculty_id' => 4, 'campus_suffix' => null, 'email_prefix' => 'geology'],
-            ['name' => 'Department of HPE', 'short_name' => 'HPE','code_base' => 'HPE', 'description' => 'Focuses on health and physical education, promoting fitness, sports sciences, and healthy lifestyle practices.', 'faculty_id' => 5, 'campus_suffix' => null, 'email_prefix' => 'physicaleducation'],
-            ['name' => 'Department of IR', 'short_name' => 'IR','code_base' => 'IR', 'description' => 'Studies international relations, global politics, diplomacy, and interactions between nations and international organizations.', 'faculty_id' => 5, 'campus_suffix' => "M", 'email_prefix' => 'ir'],
+            ['name' => 'Department of Health and Physical Education', 'short_name' => 'HPE','code_base' => 'HPE', 'description' => 'Focuses on health and physical education, promoting fitness, sports sciences, and healthy lifestyle practices.', 'faculty_id' => 5, 'campus_suffix' => null, 'email_prefix' => 'physicaleducation'],
+            ['name' => 'Department of International Relations', 'short_name' => 'IR','code_base' => 'IR', 'description' => 'Studies international relations, global politics, diplomacy, and interactions between nations and international organizations.', 'faculty_id' => 5, 'campus_suffix' => "M", 'email_prefix' => 'ir'],
             ['name' => 'Department of Islamic Studies', 'short_name' => 'Islamic Studies','code_base' => 'ISLSTU', 'description' => 'Focuses on Islamic theology, jurisprudence, history, culture, and contemporary Islamic thought.', 'faculty_id' => 1, 'campus_suffix' => null, 'email_prefix' => 'islamicstudies'],
             ['name' => 'Department of Journalism and Mass Communication', 'short_name' => 'Journalism and Mass Communication','code_base' => 'JMC', 'description' => 'Trains students in journalism, media production, broadcasting, and communication theory and ethics.', 'faculty_id' => 5, 'campus_suffix' => null, 'email_prefix' => 'jmc'],
             ['name' => 'Department of Law', 'short_name' => 'Law','code_base' => 'LAW', 'description' => 'Provides legal education covering constitutional, civil, criminal, and international law, preparing students for legal practice.', 'faculty_id' => 5, 'campus_suffix' => "M", 'email_prefix' => 'law'],
@@ -102,7 +102,6 @@ class OfficeSeeder extends Seeder
             ['name' => 'Department of Mathematics', 'short_name' => 'Mathematics','code_base' => 'MATH', 'description' => 'Studies advanced mathematical concepts, theories, and applications in pure and applied mathematics.', 'faculty_id' => 4, 'campus_suffix' => null, 'email_prefix' => 'mathematics'],
             ['name' => 'Department of Microbiology', 'short_name' => 'Microbiology','code_base' => 'MICRO', 'description' => 'Focuses on microorganisms, their classification, structure, function, and applications in medicine and industry.', 'faculty_id' => 3, 'campus_suffix' => null, 'email_prefix' => 'microbiology'],
             ['name' => 'Department of Microbiology', 'short_name' => 'Microbiology','code_base' => 'MICRO', 'description' => 'Timergara campus branch specializing in microbial sciences and their applications in regional healthcare and agriculture.', 'faculty_id' => 3, 'campus_suffix' => 'T', 'email_prefix' => 'micro.tmg'],
-            ['name' => 'Department of MLT', 'short_name' => 'MLT','code_base' => 'MLT', 'description' => 'Focuses on medical laboratory technology, training students in diagnostic testing and clinical laboratory procedures.', 'faculty_id' => 3, 'campus_suffix' => null, 'email_prefix' => 'mlt'],
             ['name' => 'Department of Pakistan Studies', 'short_name' => 'Pakistan Studies','code_base' => 'PAKSTU', 'description' => 'Studies Pakistan\'s history, culture, politics, geography, and socio-economic development.', 'faculty_id' => 1, 'campus_suffix' => "M", 'email_prefix' => 'pakstudy'],
             ['name' => 'Department of Pashto', 'short_name' => 'Pashto','code_base' => 'PASH', 'description' => 'Focuses on Pashto language, literature, poetry, and cultural studies of Pashtun regions.', 'faculty_id' => 1, 'campus_suffix' => null, 'email_prefix' => 'pashto'],
             ['name' => 'Department of Pharmacy', 'short_name' => 'Pharmacy','code_base' => 'PHARM', 'description' => 'Offers education in pharmaceutical sciences, drug development, pharmacology, and clinical pharmacy practices.', 'faculty_id' => 3, 'campus_suffix' => null, 'email_prefix' => 'pharmacy'],
@@ -115,10 +114,14 @@ class OfficeSeeder extends Seeder
             ['name' => 'Department of Tourism & Hospitality', 'short_name' => 'Tourism & Hospitality','code_base' => 'TAH', 'description' => 'Focuses on tourism management, hospitality services, and the promotion of local and international travel industries.', 'faculty_id' => 2, 'campus_suffix' => null, 'email_prefix' => 'tourism'],
             ['name' => 'Department of Zoology', 'short_name' => 'Zoology','code_base' => 'ZOO', 'description' => 'Studies animal biology, behavior, evolution, and ecology through research and laboratory investigations.', 'faculty_id' => 3, 'campus_suffix' => null, 'email_prefix' => 'zoology'],
             ['name' => 'Department of Zoology', 'short_name' => 'Zoology','code_base' => 'ZOO', 'description' => 'Timergara campus division focusing on zoological sciences with emphasis on local fauna and biodiversity.', 'faculty_id' => 3, 'campus_suffix' => 'T', 'email_prefix' => 'zoology.tmg'],
+            ['name' => 'Department of Accounting & Finance', 'short_name' => 'Accounting & Finance','code_base' => 'ACFIN', 'description' => '', 'faculty_id' => 2, 'campus_suffix' => null, 'email_prefix' => 'accounting'],
+            
             ['name' => 'College of Veterinary Sciences and Animal Husbandry', 'short_name' => 'CVS & AH', 'code_base' => 'CVSAH', 'description' => 'Provides education in veterinary medicine, animal health, livestock management, and related agricultural sciences.', 'faculty_id' => 3, 'campus_suffix' => null, 'email_prefix' => 'cvs'],
             ['name' => 'Institute of Business Leadership', 'short_name' => 'IBL', 'code_base' => 'IBL', 'description' => 'Offers advanced business education, leadership training, and executive development programs for future business leaders.', 'faculty_id' => 2, 'campus_suffix' => null, 'email_prefix' => 'ibl'],
             ['name' => 'Pakhtunkhwa College of Arts', 'short_name' => 'PCA', 'code_base' => 'PCA', 'description' => 'Focuses on fine arts, visual arts, performing arts, and cultural studies with emphasis on regional artistic traditions.', 'faculty_id' => 1, 'campus_suffix' => null, 'email_prefix' => 'principal_pca'], 
             ['name' => 'University College for Women', 'short_name' => 'UCW', 'code_base' => 'UCW', 'description' => 'Provides higher education specifically for women across various disciplines in a supportive learning environment.', 'faculty_id' => 1, 'campus_suffix' => "M", 'email_prefix' => 'principal_ucw'], 
+            // ['name' => 'Department of Agriculture', 'short_name' => 'Agriculture','code_base' => 'AGRI', 'description' => 'Focuses on agricultural sciences, crop production, and sustainable farming practices.', 'faculty_id' => 3, 'campus_suffix' => null, 'email_prefix' => 'agriculture'],
+
         ];
 
         // Process Administrative Offices (Type 1)
@@ -159,8 +162,6 @@ class OfficeSeeder extends Seeder
                     'campus_id' => $campusId,
                     'faculty_id' => null, // Admin departments typically don't belong to a faculty
                     'description' =>  $sectionData['description'],
-                    'head_id' => null,
-                    'head_appointment_date' => null,
                     'office_location' => $location, // Use dynamically fetched location
                     'contact_email' => $email,
                     'contact_phone' => $phone,
@@ -213,14 +214,12 @@ class OfficeSeeder extends Seeder
                     'office_type_id' => $officeTypeId,
                     'campus_id' => $campusId,
                     'faculty_id' => $departmentData['faculty_id'],
-                    'description' => $sectionData['description'], // Set as null per request
-                    'head_id' => null, // Set as null per request
-                    'head_appointment_date' => null,
-                    'office_location' => $location, // Use dynamically fetched location
+                    'description' => $departmentData['description'], 
+                    'office_location' => $location, 
                     'contact_email' => $email,
                     'contact_phone' => $phone,
                     'established_year' => null,
-                    'parent_office_id' => null, // Set as null per request
+                    'parent_office_id' => null,
                     'is_active' => true,
                 ]
             );

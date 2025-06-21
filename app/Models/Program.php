@@ -4,23 +4,23 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory; // Added
 
 class Program extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
     
     protected $fillable = [
-        'name', 'code', 'description', 'degree_title', 'duration', 
-        'equivalent', 'min_semester', 'max_semester', 'total_credit_hours', 
-        'program_level', 'delivery_mode', 'accreditation', 'start_date',
-        'prerequisites', 'learning_outcomes', 'coordinator_id', 'is_active'
+        'name', 'code', 'description', 'degree_title', 
+        'department_id', 'degree_level_id', 'delivery_mode_id ', 'duration',
+        'min_semester', 'max_semester', 'total_credit_hours', 'equivalent', 
+        'accreditation_status', 'start_date', 'prerequisites', 'learning_outcomes', 'is_active'
     ];
     
     protected $casts = [
         'is_active' => 'boolean',
         'min_semester' => 'integer',
         'max_semester' => 'integer',
-        'total_credit_hours' => 'integer',
         'start_date' => 'date',
         'prerequisites' => 'array',
         'learning_outcomes' => 'array'
@@ -67,6 +67,15 @@ class Program extends Model
             'id',
             'office_id'
         )->distinct();
+    }
+
+    /**
+     * Get the learning outcomes associated with this subject.
+     * Uses polymorphic relationship to allow for different types of outcomeable models.
+     */
+    public function learningOutcomes()
+    {
+        return $this->morphMany(LearningOutcome::class, 'outcomeable');
     }
     
     public function scopeActive($query)

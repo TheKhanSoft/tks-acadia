@@ -19,17 +19,6 @@
 
         {{-- Right side actions --}}
         <x-slot:actions>
-            <x-button label="Messages" tooltip-left="Messages" icon="o-envelope" link="##" class="btn-ghost btn-sm"
-                responsive />
-            <x-dropdown>
-                <x-slot:trigger>
-                    <x-button label="Notifications" tooltip-left="Notifications" icon="o-bell" link="###"
-                        class="btn-ghost btn-sm" responsive />
-                </x-slot:trigger>
-
-                <x-menu-item title="Archive" />
-                <x-menu-item title="Move" />
-            </x-dropdown>
 
         </x-slot:actions>
     </x-nav>
@@ -40,6 +29,7 @@
         @php
             $step = $step ?? 1;
         @endphp
+        {{-- <!--
         <x-card>
             <x-steps :wire:model="$step" steps-color="step-primary">
                 <x-step step="1" text="Database Configuration" icon="o-cog" />
@@ -49,6 +39,7 @@
                 <x-step step="5" text="Default Settings" icon="o-cog-6-tooth" />
             </x-steps>
         </x-card>
+        --> --}}
         <x-slot:content>
             {{ $slot }}
         </x-slot:content>

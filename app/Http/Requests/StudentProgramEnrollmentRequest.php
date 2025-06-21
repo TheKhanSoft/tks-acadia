@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\AcademicSession;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use App\Models\Student;
@@ -41,10 +42,10 @@ class StudentProgramEnrollmentRequest extends FormRequest
                 'integer',
                 Rule::exists(DepartmentProgram::class, 'id'),
             ],
-            'session_id' => [
+            'academic_session_id' => [
                 'required',
                 'integer',
-                Rule::exists(Session::class, 'id'),
+                Rule::exists(AcademicSession::class, 'id'),
             ],
             'enrollment_date' => ['required', 'date'],
             'expected_completion_date' => [
@@ -75,7 +76,7 @@ class StudentProgramEnrollmentRequest extends FormRequest
             Rule::unique('student_program_enrollments')
                 ->where('student_id', $this->input('student_id'))
                 ->where('department_program_id', $this->input('department_program_id'))
-                ->where('session_id', $this->input('session_id'))
+                ->where('academic_session_id', $this->input('academic_session_id'))
                 ->ignore($enrollmentId),
         ];
     }
@@ -94,8 +95,8 @@ class StudentProgramEnrollmentRequest extends FormRequest
             'department_program_id.required' => 'A program must be selected for the enrollment.',
             'department_program_id.exists' => 'The selected program does not exist.',
 
-            'session_id.required' => ' a session must be selected for the enrollment.',
-            'session_id.exists' => 'The selected session does not exist.',
+            'academic_session_id.required' => ' a session must be selected for the enrollment.',
+            'academic_session_id.exists' => 'The selected session does not exist.',
 
             'enrollment_date.required' => 'Enrollment date is required.',
             'enrollment_date.date' => 'Enrollment date must be a valid date.',
@@ -125,7 +126,7 @@ class StudentProgramEnrollmentRequest extends FormRequest
         return [
             'student_id' => 'student',
             'department_program_id' => 'program',
-            'session_id' => 'session',
+            'academic_session_id' => 'session',
             'enrollment_date' => 'enrollment date',
             'expected_completion_date' => 'expected completion date',
             'actual_completion_date' => 'actual completion date',

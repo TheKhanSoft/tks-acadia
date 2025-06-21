@@ -640,8 +640,13 @@ new class extends Component {
                                     <x-button wire:click="resetFilters" class="mt-3 btn btn-secondary btn-sm"
                                         label="Clear Filters" />
                                 @else
-                                    <x-button wire:click="openModal" class="mt-3 btn btn-primary btn-sm"
-                                        label="Add Your First State" />
+                                    <x-button 
+                                        wire:click="openModal(null)"  
+                                        class="mt-3 btn btn-primary btn-sm"
+                                        spinner 
+                                        tooltip-left="Add Your First State" 
+                                        label="Add Your First State"
+                                    />
                                 @endif
                             </div>
                         </td>
@@ -658,7 +663,7 @@ new class extends Component {
     </div>
 
     <!-- Add/Edit State Modal -->
-    <x-modal wire:model="showModal" :title="$stateId ? 'Edit State' : 'Add New State'" box-class="max-w-xl" separator persistent
+    <x-modal wire:model="showModal" :title="$stateId ? 'Edit State' : 'Add New State'" box-class="max-w-xl" separator
         class="mx-auto rounded-xl shadow-2xl mx-10">
         <x-form wire:submit.prevent="save">
             <div class="grid grid-cols-1 gap-4 p-4">
@@ -805,7 +810,7 @@ new class extends Component {
 
     <!-- Confirmation Modals (Delete, Restore, Permanent Delete - Single & Bulk) -->
     <!-- Delete Confirmation -->
-    <x-modal wire:model="confirmingDeletion" title="Delete State" separator persistent class="">
+    <x-modal wire:model="confirmingDeletion" title="Delete State" separator class="">
         <div class="p-4 flex items-start">
             <div
                 class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
@@ -825,7 +830,7 @@ new class extends Component {
     </x-modal>
 
     <!-- Bulk Delete Confirmation -->
-    <x-modal wire:model="confirmingBulkDeletion" title="Bulk Delete States" separator persistent class="">
+    <x-modal wire:model="confirmingBulkDeletion" title="Bulk Delete States" separator class="">
         <div class="p-4 flex items-start">
             <div
                 class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
@@ -846,7 +851,7 @@ new class extends Component {
     </x-modal>
 
     <!-- Restore Confirmation -->
-    <x-modal wire:model="confirmingRestore" title="Restore State" separator persistent class="">
+    <x-modal wire:model="confirmingRestore" title="Restore State" separator class="">
         <div class="p-4 flex items-start">
             <div
                 class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
@@ -866,7 +871,7 @@ new class extends Component {
     </x-modal>
 
     <!-- Bulk Restore Confirmation -->
-    <x-modal wire:model="confirmingBulkRestore" title="Bulk Restore States" separator persistent class="">
+    <x-modal wire:model="confirmingBulkRestore" title="Bulk Restore States" separator class="">
         <div class="p-4 flex items-start">
             <div
                 class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
@@ -886,7 +891,7 @@ new class extends Component {
     </x-modal>
 
     <!-- Permanent Delete Confirmation -->
-    <x-modal wire:model="confirmingPermanentDeletion" title="Permanently Delete State" separator persistent
+    <x-modal wire:model="confirmingPermanentDeletion" title="Permanently Delete State" separator
         class="">
         <div class="p-4 flex items-start">
             <div
@@ -907,7 +912,7 @@ new class extends Component {
     </x-modal>
 
     <!-- Bulk Permanent Delete Confirmation -->
-    <x-modal wire:model="confirmingBulkPermanentDeletion" title="Bulk Permanently Delete States" separator persistent
+    <x-modal wire:model="confirmingBulkPermanentDeletion" title="Bulk Permanently Delete States" separator
         class="">
         <div class="p-4 flex items-start">
             <div
@@ -954,7 +959,7 @@ new class extends Component {
     </x-drawer>
 
     {{-- No Export Modal for States yet --}}
-    <x-modal wire:model="showGenericExportModal" title="Configure Export" separator persistent box-class="max-w-3xl"
+    <x-modal wire:model="showGenericExportModal" title="Configure Export" separator box-class="max-w-3xl"
         class="backdrop-blur-sm">
         <div x-data="{
             availableColumns: [], // Define available columns for State export

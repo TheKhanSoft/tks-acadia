@@ -58,7 +58,7 @@ class Office extends Model
              ->using(EmployeeOffice::class)
             ->withPivot('role', 'start_date', 'end_date', 'is_primary_office', 'is_active')
             ->wherePivot('is_active', true)
-            ->where('employees.is_active', true)
+            // ->where('employees.is_active', true) // This column does not exist on employees table
             ->withTimestamps();
     }
     
@@ -98,15 +98,15 @@ class Office extends Model
             ->withTimestamps();
     }
     
-    // public function parentOffice()
-    // {
-    //     return $this->belongsTo(Office::class, 'parent_office_id');
-    // }
+    public function parentOffice()
+    {
+        return $this->belongsTo(Office::class, 'parent_office_id');
+    }
     
-    // public function childOffices()
-    // {
-    //     return $this->hasMany(Office::class, 'parent_office_id');
-    // }
+    public function childOffices()
+    {
+        return $this->hasMany(Office::class, 'parent_office_id');
+    }
 
 
     public function scopeActive($query)

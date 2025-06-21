@@ -27,7 +27,7 @@ return new class extends Migration
             $table->string('native', 150);
             $table->string('region', 50);
             $table->unsignedTinyInteger('region_id');
-            $table->string('subregion', 20);
+            $table->string('subregion', 100); // Increased length to 100
             $table->unsignedTinyInteger('subregion_id');
             $table->string('nationality', 150);
             $table->text('timezones');
@@ -58,7 +58,7 @@ return new class extends Migration
         Schema::create('cities', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->foreignId('state_id')->constrained()->onDelete('cascade');
+            $table->foreignId('state_id')->constrained();
             $table->decimal('latitude',10,8);
             $table->decimal('longitude',11,8);
             $table->string('wikiDataId', 255)->nullable()->comment('Rapid API GeoDB Cities');

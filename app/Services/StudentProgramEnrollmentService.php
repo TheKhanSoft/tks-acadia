@@ -60,7 +60,7 @@ class StudentProgramEnrollmentService
 
         $query->when(Arr::get($params, 'student_id'), fn (Builder $q, $id) => $q->where('student_id', $id));
         $query->when(Arr::get($params, 'department_program_id'), fn (Builder $q, $id) => $q->where('department_program_id', $id));
-        $query->when(Arr::get($params, 'session_id'), fn (Builder $q, $id) => $q->where('session_id', $id));
+        $query->when(Arr::get($params, 'academic_session_id'), fn (Builder $q, $id) => $q->where('academic_session_id', $id));
         $query->when(Arr::get($params, 'enrollment_status_id'), fn (Builder $q, $id) => $q->where('enrollment_status_id', $id));
 
         $query->when(Arr::get($params, 'enrollment_date_start'), fn (Builder $q, $date) => $q->whereDate('enrollment_date', '>=', $date));
@@ -110,7 +110,7 @@ class StudentProgramEnrollmentService
                   ->orderBy('department_program.name', $sortDirection) // Assuming DepartmentProgram has a 'name'
                   ->select('student_program_enrollments.*');
         } elseif ($sortField === 'session_name') {
-             $query->leftJoin('sessions', 'student_program_enrollments.session_id', '=', 'sessions.id')
+             $query->leftJoin('sessions', 'student_program_enrollments.academic_session_id', '=', 'sessions.id')
                   ->orderBy('sessions.name', $sortDirection)
                   ->select('student_program_enrollments.*');
         } elseif ($sortField === 'enrollment_status_name') {
@@ -233,11 +233,11 @@ class StudentProgramEnrollmentService
 
         $query->when(Arr::get($filters, 'student_id'), fn (Builder $q, $id) => $q->where('student_id', $id));
         $query->when(Arr::get($filters, 'department_program_id'), fn (Builder $q, $id) => $q->where('department_program_id', $id));
-        $query->when(Arr::get($filters, 'session_id'), fn (Builder $q, $id) => $q->where('session_id', $id));
+        $query->when(Arr::get($filters, 'academic_session_id'), fn (Builder $q, $id) => $q->where('academic_session_id', $id));
         $query->when(Arr::get($filters, 'enrollment_status_id'), fn (Builder $q, $id) => $q->where('enrollment_status_id', $id));
 
 
         // Select relevant fields for dropdown, potentially including related names
-        return $query->select('id', 'student_id', 'department_program_id', 'session_id', 'enrollment_date')->get();
+        return $query->select('id', 'student_id', 'department_program_id', 'academic_session_id', 'enrollment_date')->get();
     }
 }

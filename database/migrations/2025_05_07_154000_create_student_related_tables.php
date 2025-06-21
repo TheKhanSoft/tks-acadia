@@ -56,34 +56,25 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        Schema::create('sessions', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->unique()->comment('e.g., "2023-2027", "Fall 2023 Semester", "Spring 2024"');
-            $table->date('start_date')->nullable();
-            $table->date('end_date')->nullable();
-            $table->string('type')->nullable()->comment('e.g., Academic Year, Semester, Trimester');
-            $table->text('description')->nullable();
-            $table->timestamps();
-            $table->softDeletes();
-        });
-
+        //What if the table name is changed to program_enrollments?
         Schema::create('student_program_enrollments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('student_id')->constrained('students')->onDelete('cascade');
-            $table->foreignId('department_program_id')->constrained('department_program')->comment('Links to program offered by a department/faculty');
-            $table->foreignId('session_id')->constrained('sessions');
+            $table->foreignId('program_id')->constrained()->comment('Links to program offered by a department/faculty');
+            $table->foreignId('academic_session_id')->constrained();
+            $table->foreignId('student_id')->constrained()->onDelete('cascade');
             $table->date('enrollment_date');
             $table->date('expected_completion_date')->nullable();
             $table->date('actual_completion_date')->nullable();
             $table->decimal('grades', 5, 2)->nullable();
             $table->text('remarks')->nullable();
-            $table->foreignId('enrollment_status_id')->constrained('enrollment_statuses');
+            $table->foreignId('enrollment_status_id')->constrained();
             $table->timestamps();
             $table->softDeletes();
 
-            $table->unique(['student_id', 'department_program_id', 'session_id'], 'student_program_session_unique');
+            $table->unique(['student_id', 'program_id', 'academic_session_id'], 'student_program_session_unique');
             $table->index('enrollment_date');
         });
+
     }
 
     /**
@@ -91,9 +82,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        //session_enrollments
+        //session_offerings
         Schema::dropIfExists('student_program_enrollments');
         Schema::dropIfExists('students');
-        Schema::dropIfExists('sessions'); 
         Schema::dropIfExists('enrollment_statuses'); 
         Schema::dropIfExists('student_statuses');
     }

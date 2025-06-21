@@ -564,9 +564,13 @@ new class extends Component {
                                         Clear Search
                                     </button>
                                 @else
-                                    <button wire:click="openModal" class="mt-3 btn btn-primary btn-sm">
-                                        Add Your First Type
-                                    </button>
+                                    <x-button 
+                                        wire:click="openModal(null)"  
+                                        class="mt-3 btn btn-primary btn-sm"
+                                        spinner 
+                                        tooltip-left="Add Your First Job Nature" 
+                                        label="Add Your First Job Nature"
+                                    />
                                 @endif
                             </div>
                         </td>
@@ -583,7 +587,7 @@ new class extends Component {
     </div>
 
     <!-- Add/Edit Job Nature Modal -->
-    <x-modal wire:model="showModal" :title="$jobNatureId ? 'Edit Job Nature' : 'Add New Job Nature'" box-class="max-w-xl" separator persistent
+    <x-modal wire:model="showModal" :title="$jobNatureId ? 'Edit Job Nature' : 'Add New Job Nature'" box-class="max-w-xl" separator
         class="mx-auto rounded-xl shadow-2xl mx-10">
         <x-form wire:submit.prevent="save">
             {{-- Mimic grid layout from campuses modal --}}
@@ -752,7 +756,7 @@ new class extends Component {
     </x-modal>
 
     <!-- Confirmation Modals (using MaryUI Modal, styled similarly) -->
-    <x-modal wire:model="confirmingDeletion" title="Delete Job Nature" separator persistent class="">
+    <x-modal wire:model="confirmingDeletion" title="Delete Job Nature" separator class="">
         <div class="p-4 flex items-start">
             <div
                 class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
@@ -773,7 +777,7 @@ new class extends Component {
     </x-modal>
 
     {{-- Bulk Delete Confirmation --}}
-    <x-modal wire:model="confirmingBulkDeletion" title="Bulk Delete Job Natures" separator persistent class="">
+    <x-modal wire:model="confirmingBulkDeletion" title="Bulk Delete Job Natures" separator class="">
         <div class="p-4 flex items-start">
             <div
                 class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
@@ -794,7 +798,7 @@ new class extends Component {
     </x-modal>
 
     {{-- Restore Confirmation --}}
-    <x-modal wire:model="confirmingRestore" title="Restore Job Nature" separator persistent class="">
+    <x-modal wire:model="confirmingRestore" title="Restore Job Nature" separator class="">
         <div class="p-4 flex items-start">
             <div
                 class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
@@ -814,7 +818,7 @@ new class extends Component {
     </x-modal>
 
     {{-- Bulk Restore Confirmation --}}
-    <x-modal wire:model="confirmingBulkRestore" title="Bulk Restore Job Natures" separator persistent class="">
+    <x-modal wire:model="confirmingBulkRestore" title="Bulk Restore Job Natures" separator class="">
         <div class="p-4 flex items-start">
             <div
                 class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
@@ -834,7 +838,7 @@ new class extends Component {
     </x-modal>
 
     {{-- Permanent Delete Confirmation --}}
-    <x-modal wire:model="confirmingPermanentDeletion" title="Permanently Delete Job Nature" separator persistent
+    <x-modal wire:model="confirmingPermanentDeletion" title="Permanently Delete Job Nature" separator
         class="">
         <div class="p-4 flex items-start">
             <div
@@ -856,7 +860,7 @@ new class extends Component {
 
     {{-- Bulk Permanent Delete Confirmation --}}
     <x-modal wire:model="confirmingBulkPermanentDeletion" title="Bulk Permanently Delete Job Natures" separator
-        persistent class="">
+        class="">
         <div class="p-4 flex items-start">
             <div
                 class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
